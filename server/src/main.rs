@@ -7,10 +7,11 @@ use axum::{
     response::IntoResponse,
     routing::get,
 };
-use taxtalk_core::PluginSystem;
+// use core::PluginSystem; // TODO: Implement when PluginSystem is ready
 use std::net::SocketAddr;
-use std::sync::Arc;
-use tokio::sync::{Mutex, broadcast};
+// use std::sync::Arc; // TODO: Uncomment when PluginSystem is ready
+// use tokio::sync::Mutex; // TODO: Uncomment when PluginSystem is ready
+use tokio::sync::broadcast;
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -26,11 +27,9 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    // Initialize plugin system wrapped in Arc<Mutex> for thread safety
-    let plugin_system = Arc::new(Mutex::new(PluginSystem::new()));
-
+    // TODO: Initialize plugin system when implemented
+    // let plugin_system = Arc::new(Mutex::new(PluginSystem::new()));
     // TODO: Load plugins from server/plugins/ directory
-    // For now, we'll start with an empty system
 
     // Create broadcast channel for chat messages
     let (tx, _rx) = broadcast::channel(100);
@@ -42,7 +41,7 @@ async fn main() {
         .route("/health", get(health_check))
         .layer(ServiceBuilder::new().layer(CorsLayer::permissive()))
         .with_state(AppState {
-            plugin_system,
+            // plugin_system, // TODO: Add when PluginSystem is ready
             chat_tx: tx,
         });
 
@@ -56,7 +55,7 @@ async fn main() {
 
 #[derive(Clone)]
 struct AppState {
-    plugin_system: Arc<Mutex<PluginSystem>>,
+    // plugin_system: Arc<Mutex<PluginSystem>>, // TODO: Add when PluginSystem is ready
     chat_tx: broadcast::Sender<String>,
 }
 
@@ -66,6 +65,14 @@ async fn root() -> &'static str {
 
 async fn health_check() -> &'static str {
     "OK"
+}
+
+fn create_router() -> Router<AppState> {
+    Router::new()
+        .route("/", get(root))
+        .route("/ws", get(ws_handler))
+        .route("/health", get(health_check))
+        .layer(ServiceBuilder::new().layer(CorsLayer::permissive()))
 }
 
 async fn ws_handler(
@@ -116,6 +123,35 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
 mod tests {
     use super::*;
     use axum_test::TestServer;
+
+    fn create_test_app() -> Router {
+        let (tx, _rx) = broadcast::channel(100);
+        create_router().with_state(AppState { chat_tx: tx })
+    }
+
+    #[tokio::test]
+    async fn test_health_endpoint() {
+        let app = create_test_app();
+        let server = TestServer::new(app).unwrap();
+
+        let response = server.get("/health").await;
+
+        response.assert_status_ok();
+        response.assert_text("OK");
+    }
+
+    #[tokio::test]
+    async fn test_chat_endpoint() {
+        let app = create_test_app();
+        let server = TestServer::new(app).unwrap();
+
+        let response = server
+            .post("/chat")
+            .json(&serde_json::json!({"message": "test"}))
+            .await;
+
+        response.assert_status_ok();
+    }
 
     #[tokio::test]
     async fn test_root() {
