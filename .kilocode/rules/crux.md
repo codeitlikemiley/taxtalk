@@ -1,253 +1,464 @@
-# Crux-Based Plugin Architecture Rules
+# Crux Plugin Bootstrap Rules - Counter-Next Patterns
 
-## Project-Specific Architecture
+## Required Imports (EXACT)
 
-### Core Layer (Crux + Wasmtime)
-- The core layer MUST use Crux as the state management foundation
-- All state changes go through Crux's `update()` function
-- Use Wasmtime for dynamic plugin loading and execution
-- Never bypass the Crux state machine for business logic
-- All plugins communicate through Crux capabilities, never directly
-
-### Plugin System Rules
-- Plugins MUST be compiled to WASM and loaded via Wasmtime
-- Each plugin MUST have a manifest.json defining capabilities and schemas
-- Plugins MUST implement the WIT interface defined in `core/wit/core.wit`
-- Plugins can only access host capabilities explicitly declared in their manifest
-- Use `wit-bindgen` for generating plugin bindings
-
-### Event Flow Architecture
-```
-Chat Input → Tokenizer → Crux Update → Event Bus → Plugin → Capabilities → Render
-```
-- Follow this exact flow for all user interactions
-- Never short-circuit the event bus
-- All parsing goes through `tokenizer.rs` using nom + tokenizers
-
-## File Organization Standards
-
-### Required Project Structure
-```
-project-root/
-├── core/                      # Crux + Wasmtime runtime
-│   ├── wit/                   # WIT files for plugin interfaces
-│   ├── src/
-│   │   ├── lib.rs             # Main Crux App
-│   │   ├── plugin_loader.rs   # Wasmtime management
-│   │   ├── manifest.rs        # Plugin manifest handling
-│   │   ├── event_bus.rs       # Event routing system
-│   │   ├── tokenizer.rs       # Chat parsing (nom + tokenizers)
-│   │   └── schema.rs          # Entity validation
-├── plugins/                   # Individual business modules
-│   ├── [plugin-name]/
-│   │   ├── src/lib.rs
-│   │   ├── manifest.json
-│   │   └── schemas/
-└── server/                    # HTTP interface (Axum)
+### Core Imports
+```rust
+use chrono::{DateTime, Utc, serde::ts_milliseconds_option::deserialize as ts_milliseconds_option};
+use crux_core::{
+    Command,
+    macros::effect,
+    render::{RenderOperation, render},
+};
+use crux_http::{HttpError, command::Http, protocol::HttpRequest};
+use facet::Facet;
+use futures::future::join_all;
+use serde::{Deserialize, Serialize};
+use url::Url;
 ```
 
-### Naming Conventions
-- Plugin directories: lowercase with hyphens (`invoice-manager`, `crm-contacts`)
-- WIT files: snake_case (`core.wit`, `shared_types.wit`)
-- Rust modules: snake_case following standard conventions
-- Capability names: kebab-case (`http-client`, `key-value`, `pub-sub`)
+## API URL Definition (REQUIRED)
 
-## WIT Interface Standards
+### Always Define API Base URL
+```rust
+const API_URL: &str = "https://your-api-endpoint.com";
+```
 
-### Core Interface Requirements
-```wit
-// All plugins MUST implement this interface
-resource instance {
-    constructor();
-    update: func(data: list<u8>) -> result<list<u8>, string>;
-    resolve: func(effect-id: u32, data: list<u8>) -> result<list<u8>, string>;
-    view: func() -> result<list<u8>, string>;
-    schema: func() -> string;
+## HttpResult Type (REQUIRED for HTTP)
+
+### HttpResult Wrapper (ALWAYS INCLUDE)
+```rust
+#[derive(Facet, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[repr(C)]
+pub enum HttpResult<T, E> {
+    Ok(T),
+    Err(E),
+}
+
+impl<T> From<crux_http::Result<crux_http::Response<T>>>
+    for HttpResult<crux_http::Response<T>, HttpError>
+{
+    fn from(value: crux_http::Result<crux_http::Response<T>>) -> Self {
+        match value {
+            Ok(response) => HttpResult::Ok(response),
+            Err(error) => HttpResult::Err(error),
+        }
+    }
 }
 ```
 
-### Capability Import Rules
-- Only import capabilities that are declared in the plugin manifest
-- Use standard capability names: `http`, `kv`, `render`, `pub-sub`
-- Never create custom capability interfaces without architectural approval
+## Model Definition Rules
 
-## Plugin Development Rules
-
-### Manifest Requirements
-Every plugin MUST include:
-- `id`: Unique identifier
-- `version`: Semantic versioning
-- `entry`: WASM file name
-- `capabilities`: List of required Crux capabilities
-- `commands`: Chat commands and aliases
-- `schemas`: Entity schema definitions
-- `dependencies`: Other plugins this depends on
-
-### Plugin Implementation Standards
-- Use `#[no_mangle]` for all exported functions
-- Handle all errors gracefully - never panic in plugin code
-- Serialize all data exchange as JSON through serde
-- Implement proper lifecycle methods (init, update, cleanup)
-- Document all exported functions with rustdoc
-
-### Schema Validation
-- All entities MUST have corresponding JSON schemas
-- Validate all input data against schemas before processing
-- Use the core `schema.rs` module for validation logic
-- Never trust data from chat input without validation
-
-## Chat Processing Rules
-
-### Tokenization Standards
-- Use nom for structured parsing of chat commands
-- Use tokenizers crate for NLP processing of natural language
-- Parse format: `@command entity action parameters`
-- Examples:
-  ```
-  @client uriah bought 5kg of pineapple for 1000 pesos
-  @invoice create for client:uriah items:pineapple:5kg:1000
-  ```
-
-### Command Routing
-- Route parsed commands through the event bus
-- Match commands to plugins based on manifest registration
-- Support command aliases for user convenience
-- Provide helpful error messages for unrecognized commands
-
-### Data Flow
-1. Raw chat text → `tokenizer.rs`
-2. Structured data → Crux `update()`
-3. Event → `event_bus.rs`
-4. Plugin execution in Wasmtime sandbox
-5. Result → Crux state update
-6. UI update via `render` capability
-
-## Dependency Management
-
-### Core Dependencies (Required)
-```toml
-crux_core = "0.7.0"           # State management
-wasmtime = "36.0.2"           # Plugin runtime
-serde = { version = "1.0.210", features = ["derive"] }
-serde_json = "1.0.128"        # JSON serialization
-nom = "8.0.0"                 # Chat parsing
-tokenizers = "0.21.2"         # NLP processing
-notify = "6.1.1"              # Hot reload
-uuid = { version = "1.10.0", features = ["v4"] }
-thiserror = "1.0.65"          # Error handling
-tracing = "0.1.40"            # Logging
+### Model Structure (EXACT PATTERN)
+```rust
+#[derive(Default, Serialize)]
+pub struct Model {
+    // Your model fields here
+    count: Count,
+    // Add other fields as needed
+}
 ```
 
-### Plugin Dependencies
-- Plugins should minimize external dependencies
-- Use only WASI-compatible crates in plugins
-- Prefer core capabilities over direct external calls
-- Document all plugin dependencies in manifest
+### Data Type Minimum Derives
+```rust
+#[derive(Facet, Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
+pub struct Count {
+    value: isize,
+    #[serde(deserialize_with = "ts_milliseconds_option")]
+    updated_at: Option<DateTime<Utc>>,
+}
+```
 
-## Error Handling Standards
+## ViewModel Definition Rules
 
-### Error Propagation
-- Use `Result<T, E>` for all fallible operations
-- Create custom error types using `thiserror`
-- Never use `unwrap()` or `expect()` in production code
-- Provide meaningful error context for debugging
+### ViewModel Pattern (EXACT)
+```rust
+#[derive(Facet, Serialize, Deserialize, Debug, Clone)]
+#[facet(namespace = "view_model")]
+pub struct ViewModel {
+    pub text: String,
+    pub confirmed: bool,
+    // Add other UI fields as needed
+}
+```
 
-### Plugin Error Isolation
-- Plugin errors MUST NOT crash the core system
-- Catch and log all plugin exceptions
-- Provide fallback behavior when plugins fail
-- Use Wasmtime's trap handling for safety
+## Event Definition Rules
 
-## Security and Sandboxing
+### Event Enum Pattern (EXACT)
+```rust
+#[derive(Facet, Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[repr(C)]
+pub enum Event {
+    // Events from the shell (serializable)
+    Get,
+    Increment,
+    Decrement,
+    Reset,
+    
+    // Events local to the core (not serializable)
+    #[serde(skip)]
+    #[facet(skip)]
+    Set(HttpResult<crux_http::Response<Count>, HttpError>),
+    #[serde(skip)]
+    #[facet(skip)]
+    Update(Count),
+    #[serde(skip)]
+    #[facet(skip)]
+    UpdateBy(isize),
+}
+```
 
-### Plugin Isolation
-- Plugins run in Wasmtime sandbox with limited capabilities
-- Only capabilities declared in manifest are available
-- No direct file system access unless explicitly granted
-- No network access except through `http` capability
+### Event Categorization Rules
+- **Shell Events**: Simple, serializable events from UI (Get, Increment, etc.)
+- **Core Events**: Complex events with `#[serde(skip)]` and `#[facet(skip)]`
+- Use `HttpResult<T, E>` wrapper for HTTP response events
 
-### Input Validation
-- Validate all chat input before processing
-- Sanitize data passed between plugins
-- Use schema validation for all entity operations
-- Never trust plugin-provided data without verification
+## Effect Definition Rules
 
-## Testing Requirements
+### Effect Enum Pattern (EXACT)
+```rust
+#[effect(facet_typegen)]
+#[derive(Debug)]
+pub enum Effect {
+    Render(RenderOperation),
+    Http(HttpRequest),
+    ServerSentEvents(SseRequest),
+    Random(RandomNumberRequest),
+    // Add other capabilities as needed
+}
+```
 
-### Core Testing
-- Unit tests for all tokenizer parsing logic
-- Integration tests for plugin loading/unloading
-- Test Crux state transitions thoroughly
-- Mock capabilities for isolated testing
+## Plugin/App Definition Rules
 
-### Plugin Testing
-- Each plugin MUST have comprehensive unit tests
-- Test plugin manifest loading and validation
-- Test capability usage and error handling
-- Use `wasmtime` test harness for WASM testing
+### Plugin Structure (EXACT)
+```rust
+// Can be named anything: App, InventoryPlugin, CrmPlugin, etc.
+#[derive(Default)]
+pub struct App;
+```
 
-### End-to-End Testing
-- Test complete chat command flows
-- Verify plugin interactions through event bus
-- Test hot-reload functionality
-- Performance testing for plugin execution
+### App Implementation (EXACT PATTERN)
+```rust
+impl crux_core::App for App {
+    type Model = Model;
+    type Event = Event;
+    type ViewModel = ViewModel;
+    type Capabilities = (); // ALWAYS unit type
+    type Effect = Effect;
 
-## Performance Guidelines
+    #[allow(clippy::too_many_lines)]
+    fn update(
+        &self,
+        msg: Self::Event,
+        model: &mut Self::Model,
+        _caps: &Self::Capabilities, // REQUIRED signature
+    ) -> Command<Effect, Event> {
+        match msg {
+            // Handle events here
+            Event::Get => Http::get(API_URL)
+                .expect_json()
+                .build()
+                .map(Into::into)
+                .then_send(Event::Set),
+            // More event handlers...
+            _ => Command::done(),
+        }
+    }
 
-### Plugin Loading
-- Implement lazy loading for plugins
-- Cache compiled WASM modules
-- Support hot-reload during development
-- Minimize startup time for new plugin instances
+    fn view(&self, model: &Self::Model) -> Self::ViewModel {
+        ViewModel {
+            text: model.count.value.to_string(),
+            confirmed: model.count.updated_at.is_some(),
+        }
+    }
+}
+```
 
-### Memory Management
-- Monitor memory usage of plugin instances
-- Implement plugin lifecycle management
-- Clean up resources when plugins are unloaded
-- Use memory-efficient serialization formats
+## Command Patterns (FROM EXAMPLE)
 
-### Capability Optimization
-- Pool capability instances when possible
-- Implement capability caching where appropriate
-- Monitor capability call frequency and performance
-- Optimize JSON serialization/deserialization
+### HTTP GET Pattern
+```rust
+Event::Get => Http::get(API_URL)
+    .expect_json()
+    .build()
+    .map(Into::into)
+    .then_send(Event::Set),
+```
 
-## Development Workflow
+### HTTP POST Pattern
+```rust
+Event::Increment => {
+    // Optimistic update
+    model.count = Count {
+        value: model.count.value + 1,
+        updated_at: None,
+    };
 
-### Hot Reload Support
-- Watch plugin directories for changes
-- Automatically recompile and reload modified plugins
-- Preserve system state during plugin reloads
-- Provide clear feedback on reload success/failure
+    let call_api = {
+        let base = Url::parse(API_URL).unwrap();
+        let url = base.join("/inc").unwrap();
+        Http::post(url)
+            .expect_json()
+            .build()
+            .map(Into::into)
+            .then_send(Event::Set)
+    };
 
-### Debugging
-- Use `tracing` for structured logging throughout
-- Include plugin ID and event context in all logs
-- Implement debug modes for verbose plugin execution
-- Support plugin debugging through Wasmtime
+    render().and(call_api)
+}
+```
 
-### Documentation
-- Document all capabilities and their interfaces
-- Maintain up-to-date plugin development guides
-- Include examples for common plugin patterns
-- Keep WIT interface documentation current
+### Async Command Pattern
+```rust
+Event::UpdateBy(change) => {
+    // Complex async operation
+    Command::new(|ctx| async move {
+        let futures = (0..n).map(|_| {
+            Http::post(url.clone())
+                .expect_json::<Count>()
+                .build()
+                .into_future(ctx.clone())
+        });
 
-## Business Domain Rules
+        let result: Result<Vec<crux_http::Response<Count>>, crux_http::HttpError> =
+            join_all(futures).await.into_iter().collect();
 
-### Entity Management
-- Use UUID for all entity identifiers
-- Implement proper entity relationships through schemas
-- Support entity lifecycle events (create, update, delete)
-- Maintain audit trails for important business operations
+        let latest = result.map(|counts| {
+            counts
+                .into_iter()
+                .max_by_key(|c| c.body().unwrap().updated_at.unwrap())
+                .unwrap()
+        });
 
-### Command Patterns
-- Support natural language commands where possible
-- Provide shortcuts for common operations
-- Implement command history and suggestions
-- Support bulk operations through batch commands
+        ctx.send_event(Event::Set(latest.into()));
+    })
+}
+```
 
-### Data Consistency
-- Ensure cross-plugin data consistency
-- Implement proper transaction boundaries
-- Handle concurrent access to shared data
-- Provide rollback capabilities for failed operations
+### Command Composition Patterns
+```rust
+// Render and HTTP together
+render().and(call_api)
+
+// Event without side effects
+Command::event(Event::Update(count))
+
+// No operation
+Command::done()
+```
+
+## FFI Module (COPY-PASTE REQUIRED)
+
+### FFI Module Structure
+```rust
+#[cfg(not(target_family = "wasm"))]
+pub mod uniffi_ffi {
+    use std::sync::Arc;
+    
+    use crux_core::{
+        Core,
+        bridge::EffectId,
+        macros::effect,
+        middleware::{BincodeFfiFormat, Bridge, HandleEffectLayer, Layer as _, MapEffectLayer},
+        render::RenderOperation,
+    };
+    use crux_http::protocol::HttpRequest;
+
+    use crate::{App, middleware::RngMiddleware, sse::SseRequest};
+
+    #[effect(facet_typegen)]
+    pub enum Effect {
+        Render(RenderOperation),
+        Http(HttpRequest),
+        ServerSentEvents(SseRequest),
+    }
+
+    impl From<crate::app::Effect> for Effect {
+        fn from(effect: crate::app::Effect) -> Self {
+            match effect {
+                crate::Effect::Render(request) => Effect::Render(request),
+                crate::Effect::Http(request) => Effect::Http(request),
+                crate::Effect::ServerSentEvents(request) => Effect::ServerSentEvents(request),
+                crate::Effect::Random(_) => panic!("Encountered a Random effect"),
+            }
+        }
+    }
+
+    #[uniffi::export(with_foreign)]
+    pub trait CruxShell: Send + Sync {
+        fn process_effects(&self, bytes: Vec<u8>);
+    }
+
+    #[derive(uniffi::Object)]
+    pub struct CoreFFI {
+        core: Bridge<
+            MapEffectLayer<HandleEffectLayer<Core<App>, RngMiddleware>, Effect>,
+            BincodeFfiFormat,
+        >,
+    }
+
+    #[uniffi::export]
+    #[allow(clippy::missing_panics_doc)]
+    impl CoreFFI {
+        #[uniffi::constructor]
+        pub fn new(shell: Arc<dyn CruxShell>) -> Self {
+            let core = Core::<App>::new()
+                .handle_effects_using(RngMiddleware::new())
+                .map_effect::<Effect>()
+                .bridge::<BincodeFfiFormat>(move |effect_bytes| match effect_bytes {
+                    Ok(effect) => shell.process_effects(effect),
+                    Err(e) => panic!("{e}"),
+                });
+
+            Self { core }
+        }
+
+        #[must_use]
+        pub fn update(&self, data: &[u8]) -> Vec<u8> {
+            match self.core.update(data) {
+                Ok(effects) => effects,
+                Err(e) => panic!("{e}"),
+            }
+        }
+
+        #[must_use]
+        pub fn resolve(&self, effect_id: u32, data: &[u8]) -> Vec<u8> {
+            match self.core.resolve(EffectId(effect_id), data) {
+                Ok(effects) => effects,
+                Err(e) => panic!("{e}"),
+            }
+        }
+
+        #[must_use]
+        pub fn view(&self) -> Vec<u8> {
+            match self.core.view() {
+                Ok(view) => view,
+                Err(e) => panic!("{e}"),
+            }
+        }
+    }
+}
+
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+pub mod wasm_ffi {
+    // WASM FFI implementation - copy from example
+}
+
+#[cfg(all(target_os = "wasi", target_env = "p2"))]
+pub mod wasip2 {
+    // WASI FFI implementation - copy from example
+}
+```
+
+## Library Root (lib.rs) Pattern
+
+### Required lib.rs Structure
+```rust
+mod app;
+mod capabilities;
+mod ffi;
+#[cfg(not(target_family = "wasm"))]
+mod middleware;
+
+pub use crux_core::Core;
+pub use crux_http as http;
+pub use app::*;
+pub use capabilities::{RandomNumber, RandomNumberRequest, sse};
+
+#[cfg(not(target_family = "wasm"))]
+const _: () = assert!(
+    uniffi::check_compatible_version("0.29.4"),
+    "please use uniffi v0.29.4"
+);
+
+#[cfg(not(target_family = "wasm"))]
+uniffi::setup_scaffolding!();
+
+#[cfg(not(target_family = "wasm"))]
+pub use ffi::uniffi_ffi::CoreFFI;
+
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+pub use ffi::wasm_ffi::CoreFFI;
+
+#[cfg(all(target_os = "wasi", target_env = "p2"))]
+pub use ffi::wasip2::CoreFFI;
+```
+
+## Testing Patterns (FROM EXAMPLE)
+
+### Test Structure Pattern
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crux_core::{App as _, assert_effect};
+    use crux_http::{
+        protocol::{HttpRequest, HttpResponse, HttpResult},
+        testing::ResponseBuilder,
+    };
+
+    #[test]
+    fn get_counter() {
+        let app = App;
+        let mut model = Model::default();
+
+        // Send event to app
+        let mut cmd = app.update(Event::Get, &mut model, &());
+
+        // Check effects
+        let (operation, mut request) = cmd.effects().next().unwrap().expect_http().split();
+        
+        // Assert request
+        assert_eq!(
+            &operation,
+            &HttpRequest::get("https://crux-counter.fly.dev/").build()
+        );
+
+        // Resolve request
+        let response = HttpResponse::ok()
+            .body(r#"{ "value": 1, "updated_at": 1672531200000 }"#)
+            .build();
+        request
+            .resolve(crux_http::protocol::HttpResult::Ok(response))
+            .unwrap();
+
+        // Check events
+        let actual = cmd.events().next().unwrap();
+        // Assert event matches expected
+    }
+}
+```
+
+## Cargo.toml Dependencies
+
+### Required Dependencies
+```toml
+[dependencies]
+crux_core = "0.12.0"
+crux_http = "0.14.0"
+facet = "0.4.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+url = "2.5"
+futures = "0.3"
+
+[features]
+typegen = ["crux_core/typegen", "crux_http/typegen"]
+
+[build-dependencies]
+uniffi = { version = "0.29.4", features = ["build"] }
+```
+
+## CRITICAL BOOTSTRAP CHECKLIST
+
+1. ✅ Define `API_URL` constant
+2. ✅ Include `HttpResult<T, E>` wrapper with From impl
+3. ✅ Use exact derive macros on all types
+4. ✅ Event categorization with proper skip attributes
+5. ✅ `#[effect(facet_typegen)]` on Effect enum
+6. ✅ `type Capabilities = ()` in App impl
+7. ✅ Required `_caps: &Self::Capabilities` parameter
+8. ✅ Copy FFI module exactly from example
+9. ✅ Include all required modules in lib.rs
+10. ✅ Use exact command patterns from example
