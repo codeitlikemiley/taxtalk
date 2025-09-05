@@ -1,28 +1,341 @@
-// Invoice Plugin for Crux + WASM Architecture
-// Handles invoice creation, management, and processing
-
+use std::sync::Arc;
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use serde_json::Value;
 use uuid::Uuid;
+use chrono::{DateTime, Utc};
+use rust_decimal::Decimal;
 
+use core::tokens::*;
+use core::plugin_system::*;
+
+/// Invoice Plugin - Complete example of token-driven plugin architecture
+#[derive(Default)]
+pub struct InvoicePlugin {
+    id: String,
+    version: String,
+}
+
+#[async_trait]
+impl Plugin for InvoicePlugin {
+    fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn version(&self) -> &str {
+        &self.version
+    }
+
+    fn commands(&self) -> Vec<CommandRegistration> {
+        vec![
+            CommandRegistration {
+                command: "create_invoice".to_string(),
+                aliases: vec!["@invoice".to_string(), "@inv".to_string()],
+                requirements: CommandRequirements {
+                    required: vec![
+                        TokenRequirement {
+                            token_type: "entity_ref".to_string(),
+                            description: "Client reference".to_string(),
+                            validator: Some(Arc::new(|token| {
+                                if let Ok(entity_ref) = token.as_any().downcast_ref::<EntityRef>() {
+                                    entity_ref.entity_type == "client"
+                                } else {
+                                    false
+                                }
+                            })),
+                            multiple: false,
+                        },
+                        TokenRequirement {
+                            token_type: "amount".to_string(),
+                            description: "Invoice amount".to_string(),
+                            validator: None,
+                            multiple: false,
+                        },
+                    ],
+                    optional: vec![
+                        TokenRequirement {
+                            token_type: "quantity".to_string(),
+                            description: "Item quantities".to_string(),
+                            validator: None,
+                            multiple: true,
+                        },
+                    ],
+                    defaults: vec![
+                        TokenDefault {
+                            token_type: "tax".to_string(),
+                            default_value: Box::new(PhilippineVatToken {
+                                base: BaseTokenFields::new("12% VAT".to_string(), TokenPosition { start: 0, end: 0, line: 0, column: 0 }),
+                                rate: Decimal::from_str("0.12").unwrap(),
+                                inclusive: false,
+                                applies_to: None,
+                            }),
+                            condition: None,
+                        },
+                    ],
+                    validators: vec![],
+                    allow_partial: false,
+                },
+                priority: 10,
+                description: "Create a new invoice".to_string(),
+                examples: vec![
+                    "@invoice create client:uriah amount:1000".to_string(),
+                    "create invoice for uriah with 5kg pineapple at 1000 pesos".to_string(),
+                ],
+            },
+            CommandRegistration {
+                command: "list_invoices".to_string(),
+                aliases: vec!["@invoices".to_string()],
+                requirements: CommandRequirements {
+                    required: vec![],
+                    optional: vec![
+                        TokenRequirement {
+                            token_type: "entity_ref".to_string(),
+                            description: "Filter by client".to_string(),
+                            validator: Some(Arc::new(|token| {
+                                if let Ok(entity_ref) = token.as_any().downcast_ref::<EntityRef>() {
+                                    entity_ref.entity_type == "client"
+                                } else {
+                                    false
+                                }
+                            })),
+                            multiple: false,
+                        },
+                    ],
+                    defaults: vec![],
+                    validators: vec![],
+                    allow_partial: true,
+                },
+                priority: 5,
+                description: "List invoices".to_string(),
+                examples: vec![
+                    "@invoices".to_string(),
+                    "@invoices client:uriah".to_string(),
+                ],
+            },
+        ]
+    }
+
+    fn can_handle(&self, command: &CommandToken, tokens: &[Box<dyn Token>]) -> CanHandleResult {
+        match command.verb.as_str() {
+            "create" | "add" | "new" => {
+                // Check if we have required tokens for invoice creation
+                let has_client = tokens.iter().any(|t| {
+                    if let Ok(entity_ref) = t.as_any().downcast_ref::<EntityRef>() {
+                        entity_ref.entity_type == "client"
+                    } else {
+                        false
+                    }
+                });
+
+                let has_amount = tokens.iter().any(|t| t.token_type() == "amount");
+
+                if has_client && has_amount {
+                    CanHandleResult::Yes { confidence: 0.9 }
+                } else if has_client || has_amount {
+                    CanHandleResult::Partial {
+                        missing: if has_client { vec!["amount".to_string()] } else { vec!["client".to_string()] }
+                    }
+                } else {
+                    CanHandleResult::No { reason: "Missing required tokens for invoice creation".to_string() }
+                }
+            }
+            "list" | "show" | "get" => {
+                CanHandleResult::Yes { confidence: 0.8 }
+            }
+            _ => CanHandleResult::No { reason: format!("Unknown command: {}", command.verb) },
+        }
+    }
+
+    async fn execute(&self, command: &CommandToken, tokens: Vec<Box<dyn Token>>) -> Result<ExecutionResult, Error> {
+        match command.verb.as_str() {
+            "create" | "add" | "new" => {
+                self.create_invoice(tokens).await
+            }
+            "list" | "show" | "get" => {
+                self.list_invoices(tokens).await
+            }
+            _ => Err(Error::CommandNotSupported(command.verb.clone())),
+        }
+    }
+
+    async fn export_state(&self) -> Result<Value, Error> {
+        // Export plugin state (invoices, etc.)
+        Ok(json!({
+            "plugin_id": self.id,
+            "version": self.version,
+            "exported_at": Utc::now().to_rfc3339(),
+            "invoices": [] // Would contain actual invoice data
+        }))
+    }
+
+    async fn import_state(&mut self, state: Value) -> Result<(), Error> {
+        // Import plugin state
+        if let Some(version) = state.get("version").and_then(|v| v.as_str()) {
+            if version != self.version {
+                tracing::warn!("Importing state from different version: {} -> {}", version, self.version);
+            }
+        }
+        Ok(())
+    }
+}
+
+impl InvoicePlugin {
+    pub fn new() -> Self {
+        Self {
+            id: "invoice-plugin".to_string(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+        }
+    }
+
+    async fn create_invoice(&self, tokens: Vec<Box<dyn Token>>) -> Result<ExecutionResult, Error> {
+        // Extract client reference
+        let client_ref = tokens.iter()
+            .find_map(|t| t.as_any().downcast_ref::<EntityRef>())
+            .filter(|er| er.entity_type == "client")
+            .ok_or_else(|| Error::CommandNotSupported("No client reference found".to_string()))?;
+
+        // Extract amount
+        let amount = tokens.iter()
+            .find_map(|t| t.as_any().downcast_ref::<Amount>())
+            .ok_or_else(|| Error::CommandNotSupported("No amount found".to_string()))?;
+
+        // Extract quantities (optional)
+        let quantities: Vec<&Quantity> = tokens.iter()
+            .filter_map(|t| t.as_any().downcast_ref::<Quantity>())
+            .collect();
+
+        // Create invoice
+        let invoice_id = Uuid::new_v4();
+        let invoice = Invoice {
+            id: invoice_id,
+            client_id: client_ref.entity_id.clone(),
+            amount: amount.value,
+            currency: amount.currency.as_ref().map(|c| c.to_string()).unwrap_or_else(|| "PHP".to_string()),
+            items: quantities.iter().map(|q| InvoiceItem {
+                description: format!("{} {}", q.value, q.unit.as_deref().unwrap_or("units")),
+                quantity: q.value,
+                unit_price: amount.value / Decimal::from(quantities.len()),
+            }).collect(),
+            created_at: Utc::now(),
+            status: InvoiceStatus::Draft,
+        };
+
+        // Generate journal entries for accounting
+        let journal_entries = self.generate_journal_entries(&invoice);
+
+        // Create artifacts
+        let artifacts = vec![
+            Artifact {
+                artifact_type: "invoice".to_string(),
+                data: serde_json::to_value(&invoice).unwrap(),
+            },
+            Artifact {
+                artifact_type: "pdf".to_string(),
+                data: json!({
+                    "filename": format!("invoice-{}.pdf", invoice_id),
+                    "content": "PDF content would be generated here"
+                }),
+            },
+        ];
+
+        Ok(ExecutionResult {
+            plugin_id: self.id.clone(),
+            command: "create_invoice".to_string(),
+            journal_entries,
+            metadata: json!({
+                "invoice_id": invoice_id,
+                "client_id": client_ref.entity_id,
+                "amount": amount.value.to_string(),
+                "currency": invoice.currency,
+                "item_count": invoice.items.len(),
+            }),
+            artifacts,
+        })
+    }
+
+    async fn list_invoices(&self, tokens: Vec<Box<dyn Token>>) -> Result<ExecutionResult, Error> {
+        // Extract optional client filter
+        let client_filter = tokens.iter()
+            .find_map(|t| t.as_any().downcast_ref::<EntityRef>())
+            .filter(|er| er.entity_type == "client")
+            .map(|er| er.entity_id.clone());
+
+        // In a real implementation, this would query a database
+        let invoices = vec![
+            InvoiceSummary {
+                id: Uuid::new_v4(),
+                client_name: "Sample Client".to_string(),
+                amount: Decimal::from_str("1000.00").unwrap(),
+                currency: "PHP".to_string(),
+                status: "draft".to_string(),
+                created_at: Utc::now(),
+            }
+        ];
+
+        let filtered_invoices: Vec<&InvoiceSummary> = if let Some(client_id) = client_filter {
+            invoices.iter().filter(|inv| inv.client_name.contains(&client_id)).collect()
+        } else {
+            invoices.iter().collect()
+        };
+
+        Ok(ExecutionResult {
+            plugin_id: self.id.clone(),
+            command: "list_invoices".to_string(),
+            journal_entries: vec![],
+            metadata: json!({
+                "count": filtered_invoices.len(),
+                "client_filter": client_filter,
+            }),
+            artifacts: vec![
+                Artifact {
+                    artifact_type: "invoice_list".to_string(),
+                    data: serde_json::to_value(&filtered_invoices).unwrap(),
+                }
+            ],
+        })
+    }
+
+    fn generate_journal_entries(&self, invoice: &Invoice) -> Vec<JournalEntry> {
+        vec![
+            JournalEntry {
+                date: invoice.created_at,
+                description: format!("Invoice {} for client {}", invoice.id, invoice.client_id),
+                lines: vec![
+                    JournalLine {
+                        account_code: "1100".to_string(), // Accounts Receivable
+                        debit: Some(invoice.amount),
+                        credit: None,
+                        reference: Some(format!("INV-{}", invoice.id)),
+                    },
+                    JournalLine {
+                        account_code: "4000".to_string(), // Sales Revenue
+                        debit: None,
+                        credit: Some(invoice.amount),
+                        reference: Some(format!("INV-{}", invoice.id)),
+                    },
+                ],
+            }
+        ]
+    }
+}
+
+/// Invoice data structures
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Invoice {
     pub id: Uuid,
     pub client_id: String,
-    pub amount: f64,
+    pub amount: Decimal,
     pub currency: String,
     pub items: Vec<InvoiceItem>,
+    pub created_at: DateTime<Utc>,
     pub status: InvoiceStatus,
-    pub created_at: chrono::DateTime<chrono::Utc>,
-    pub due_date: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvoiceItem {
     pub description: String,
-    pub quantity: f64,
-    pub unit_price: f64,
-    pub total: f64,
+    pub quantity: Decimal,
+    pub unit_price: Decimal,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,308 +348,168 @@ pub enum InvoiceStatus {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum InvoiceEvent {
-    CreateInvoice {
-        client_id: String,
-        items: Vec<InvoiceItem>,
-        currency: String,
-    },
-    UpdateInvoice {
-        invoice_id: Uuid,
-        updates: HashMap<String, serde_json::Value>,
-    },
-    SendInvoice {
-        invoice_id: Uuid,
-    },
-    MarkPaid {
-        invoice_id: Uuid,
-    },
+pub struct InvoiceSummary {
+    pub id: Uuid,
+    pub client_name: String,
+    pub amount: Decimal,
+    pub currency: String,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Philippine VAT Token - Specialized tax token
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PhilippineVatToken {
+    pub base: BaseTokenFields,
+    pub rate: Decimal,
+    pub inclusive: bool,
+    pub applies_to: Option<Uuid>,
+}
+
+impl Token for PhilippineVatToken {
+    fn token_type(&self) -> &str {
+        "tax:vat:ph"
+    }
+
+    fn uuid(&self) -> Uuid {
+        self.base.uuid
+    }
+
+    fn raw_text(&self) -> &str {
+        &self.base.raw_text
+    }
+
+    fn position(&self) -> &TokenPosition {
+        &self.base.position
+    }
+
+    fn clone_box(&self) -> Box<dyn Token> {
+        Box::new(self.clone())
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self
+    }
+
+    fn type_id(&self) -> std::any::TypeId {
+        std::any::TypeId::of::<PhilippineVatToken>()
+    }
+
+    fn to_json(&self) -> Value {
+        json!({
+            "type": "tax:vat:ph",
+            "uuid": self.uuid().to_string(),
+            "rate": self.rate.to_string(),
+            "inclusive": self.inclusive,
+            "applies_to": self.applies_to.map(|u| u.to_string()),
+            "raw_text": self.raw_text(),
+        })
+    }
+
+    fn matches(&self, pattern: &dyn TokenPattern) -> bool {
+        pattern.matches(self)
+    }
+
+    fn validate(&self) -> Result<(), ValidationError> {
+        if self.rate != Decimal::from_str("0.12").unwrap() {
+            return Err(ValidationError::InvalidToken {
+                reason: "Philippine VAT rate must be 12%".to_string(),
+            });
+        }
+        Ok(())
+    }
+
+    fn can_compose_with(&self, other: &dyn Token) -> bool {
+        matches!(other.token_type(), "amount")
+    }
+
+    fn display_text(&self) -> String {
+        format!("VAT {}%", self.rate * Decimal::from(100))
+    }
+
+    fn metadata(&self) -> TokenMetadata {
+        self.base.metadata.clone()
+    }
+}
+
+impl TaxToken for PhilippineVatToken {
+    fn tax_type(&self) -> &str {
+        "VAT"
+    }
+
+    fn rate(&self) -> Option<Decimal> {
+        Some(self.rate)
+    }
+
+    fn is_inclusive(&self) -> bool {
+        self.inclusive
+    }
+
+    fn compute(&self, amount: Decimal) -> TaxComputation {
+        if self.inclusive {
+            let base = amount / (Decimal::ONE + self.rate);
+            let tax = amount - base;
+            TaxComputation { base, tax, total: amount }
+        } else {
+            let tax = amount * self.rate;
+            TaxComputation { base: amount, tax, total: amount + tax }
+        }
+    }
+
+    fn applies_to(&self) -> Vec<String> {
+        vec!["amount".to_string()]
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InvoiceResponse {
-    pub success: bool,
-    pub message: String,
-    pub data: Option<serde_json::Value>,
-}
-
-pub struct InvoicePlugin {
-    invoices: HashMap<Uuid, Invoice>,
-}
-
-impl InvoicePlugin {
-    pub fn new() -> Self {
-        Self {
-            invoices: HashMap::new(),
-        }
-    }
-
-    pub fn handle_event(&mut self, event: InvoiceEvent) -> InvoiceResponse {
-        match event {
-            InvoiceEvent::CreateInvoice { client_id, items, currency } => {
-                self.create_invoice(client_id, items, currency)
-            }
-            InvoiceEvent::UpdateInvoice { invoice_id, updates } => {
-                self.update_invoice(invoice_id, updates)
-            }
-            InvoiceEvent::SendInvoice { invoice_id } => {
-                self.send_invoice(invoice_id)
-            }
-            InvoiceEvent::MarkPaid { invoice_id } => {
-                self.mark_paid(invoice_id)
-            }
-        }
-    }
-
-    fn create_invoice(&mut self, client_id: String, items: Vec<InvoiceItem>, currency: String) -> InvoiceResponse {
-        let total_amount = items.iter().map(|item| item.total).sum();
-        let invoice = Invoice {
-            id: Uuid::new_v4(),
-            client_id,
-            amount: total_amount,
-            currency,
-            items,
-            status: InvoiceStatus::Draft,
-            created_at: chrono::Utc::now(),
-            due_date: Some(chrono::Utc::now() + chrono::Duration::days(30)),
-        };
-
-        self.invoices.insert(invoice.id, invoice.clone());
-
-        InvoiceResponse {
-            success: true,
-            message: format!("Invoice {} created successfully", invoice.id),
-            data: Some(serde_json::to_value(&invoice).unwrap()),
-        }
-    }
-
-    fn update_invoice(&mut self, invoice_id: Uuid, updates: HashMap<String, serde_json::Value>) -> InvoiceResponse {
-        if let Some(invoice) = self.invoices.get_mut(&invoice_id) {
-            // Apply updates (simplified - in real implementation, validate and apply each update)
-            for (field, value) in updates {
-                match field.as_str() {
-                    "status" => {
-                        if let Some(status_str) = value.as_str() {
-                            match status_str {
-                                "sent" => invoice.status = InvoiceStatus::Sent,
-                                "paid" => invoice.status = InvoiceStatus::Paid,
-                                "cancelled" => invoice.status = InvoiceStatus::Cancelled,
-                                _ => {}
-                            }
-                        }
-                    }
-                    _ => {} // Handle other fields as needed
-                }
-            }
-
-            InvoiceResponse {
-                success: true,
-                message: format!("Invoice {} updated", invoice_id),
-                data: Some(serde_json::to_value(&invoice).unwrap()),
-            }
-        } else {
-            InvoiceResponse {
-                success: false,
-                message: format!("Invoice {} not found", invoice_id),
-                data: None,
-            }
-        }
-    }
-
-    fn send_invoice(&mut self, invoice_id: Uuid) -> InvoiceResponse {
-        if let Some(invoice) = self.invoices.get_mut(&invoice_id) {
-            invoice.status = InvoiceStatus::Sent;
-            InvoiceResponse {
-                success: true,
-                message: format!("Invoice {} sent to client", invoice_id),
-                data: Some(serde_json::to_value(&invoice).unwrap()),
-            }
-        } else {
-            InvoiceResponse {
-                success: false,
-                message: format!("Invoice {} not found", invoice_id),
-                data: None,
-            }
-        }
-    }
-
-    fn mark_paid(&mut self, invoice_id: Uuid) -> InvoiceResponse {
-        if let Some(invoice) = self.invoices.get_mut(&invoice_id) {
-            invoice.status = InvoiceStatus::Paid;
-            InvoiceResponse {
-                success: true,
-                message: format!("Invoice {} marked as paid", invoice_id),
-                data: Some(serde_json::to_value(&invoice).unwrap()),
-            }
-        } else {
-            InvoiceResponse {
-                success: false,
-                message: format!("Invoice {} not found", invoice_id),
-                data: None,
-            }
-        }
-    }
-
-    pub fn get_invoice(&self, invoice_id: Uuid) -> Option<&Invoice> {
-        self.invoices.get(&invoice_id)
-    }
-
-    pub fn list_invoices(&self) -> Vec<&Invoice> {
-        self.invoices.values().collect()
-    }
-}
-
-impl Default for InvoicePlugin {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-// WIT Interface Exports
-#[unsafe(no_mangle)]
-pub extern "C" fn constructor() -> *mut InvoicePlugin {
-    Box::into_raw(Box::new(InvoicePlugin::new()))
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn update(plugin: *mut InvoicePlugin, data: *const u8, len: usize) -> *mut u8 {
-    let plugin = unsafe { &mut *plugin };
-    let data_slice = unsafe { std::slice::from_raw_parts(data, len) };
-
-    if let Ok(event_str) = std::str::from_utf8(data_slice) {
-        if let Ok(event) = serde_json::from_str::<InvoiceEvent>(event_str) {
-            let response = plugin.handle_event(event);
-            let response_json = serde_json::to_string(&response).unwrap();
-            let response_bytes = response_json.into_bytes();
-            let response_ptr = response_bytes.as_ptr() as *mut u8;
-            std::mem::forget(response_bytes); // Prevent deallocation
-            response_ptr
-        } else {
-            let error_response = InvoiceResponse {
-                success: false,
-                message: "Invalid event data".to_string(),
-                data: None,
-            };
-            let response_json = serde_json::to_string(&error_response).unwrap();
-            let response_bytes = response_json.into_bytes();
-            let response_ptr = response_bytes.as_ptr() as *mut u8;
-            std::mem::forget(response_bytes);
-            response_ptr
-        }
-    } else {
-        let error_response = InvoiceResponse {
-            success: false,
-            message: "Invalid UTF-8 data".to_string(),
-            data: None,
-        };
-        let response_json = serde_json::to_string(&error_response).unwrap();
-        let response_bytes = response_json.into_bytes();
-        let response_ptr = response_bytes.as_ptr() as *mut u8;
-        std::mem::forget(response_bytes);
-        response_ptr
-    }
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn view(plugin: *mut InvoicePlugin) -> *mut u8 {
-    let plugin = unsafe { &*plugin };
-    let invoices: Vec<&Invoice> = plugin.list_invoices();
-    let view_data = serde_json::json!({
-        "total_invoices": invoices.len(),
-        "invoices": invoices
-    });
-    let view_json = serde_json::to_string(&view_data).unwrap();
-    let view_bytes = view_json.into_bytes();
-    let view_ptr = view_bytes.as_ptr() as *mut u8;
-    std::mem::forget(view_bytes);
-    view_ptr
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn schema() -> *const std::ffi::c_char {
-    let schema = r#"{
-        "type": "object",
-        "properties": {
-            "id": {"type": "string", "format": "uuid"},
-            "client_id": {"type": "string"},
-            "amount": {"type": "number"},
-            "currency": {"type": "string"},
-            "status": {"type": "string", "enum": ["draft", "sent", "paid", "overdue", "cancelled"]},
-            "created_at": {"type": "string", "format": "date-time"},
-            "due_date": {"type": "string", "format": "date-time"}
-        },
-        "required": ["id", "client_id", "amount", "currency", "status", "created_at"]
-    }"#;
-
-    let c_str = std::ffi::CString::new(schema).unwrap();
-    c_str.into_raw()
+pub struct TaxComputation {
+    pub base: Decimal,
+    pub tax: Decimal,
+    pub total: Decimal,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use core::tokens::*;
 
     #[test]
-    fn test_create_invoice() {
-        let mut plugin = InvoicePlugin::new();
-
-        let items = vec![InvoiceItem {
-            description: "Pineapple".to_string(),
-            quantity: 5.0,
-            unit_price: 200.0,
-            total: 1000.0,
-        }];
-
-        let event = InvoiceEvent::CreateInvoice {
-            client_id: "client123".to_string(),
-            items,
-            currency: "PHP".to_string(),
-        };
-
-        let response = plugin.handle_event(event);
-        assert!(response.success);
-        assert!(response.data.is_some());
+    fn test_invoice_plugin_creation() {
+        let plugin = InvoicePlugin::new();
+        assert_eq!(plugin.id(), "invoice-plugin");
+        assert!(!plugin.version().is_empty());
     }
 
     #[test]
-    fn test_mark_paid() {
-        let mut plugin = InvoicePlugin::new();
-
-        // Create invoice first
-        let items = vec![InvoiceItem {
-            description: "Test Item".to_string(),
-            quantity: 1.0,
-            unit_price: 100.0,
-            total: 100.0,
-        }];
-
-        let create_event = InvoiceEvent::CreateInvoice {
-            client_id: "client123".to_string(),
-            items,
-            currency: "USD".to_string(),
+    fn test_philippine_vat_token() {
+        let token = PhilippineVatToken {
+            base: BaseTokenFields::new("12% VAT".to_string(), TokenPosition { start: 0, end: 0, line: 0, column: 0 }),
+            rate: Decimal::from_str("0.12").unwrap(),
+            inclusive: false,
+            applies_to: None,
         };
 
-        let create_response = plugin.handle_event(create_event);
-        assert!(create_response.success);
+        assert_eq!(token.token_type(), "tax:vat:ph");
+        assert_eq!(token.display_text(), "VAT 12%");
+        assert!(token.validate().is_ok());
+    }
 
-        // Extract invoice ID from response
-        if let Some(data) = create_response.data {
-            if let Ok(invoice) = serde_json::from_value::<Invoice>(data) {
-                let mark_paid_event = InvoiceEvent::MarkPaid {
-                    invoice_id: invoice.id,
-                };
+    #[test]
+    fn test_vat_computation() {
+        let token = PhilippineVatToken {
+            base: BaseTokenFields::new("12% VAT".to_string(), TokenPosition { start: 0, end: 0, line: 0, column: 0 }),
+            rate: Decimal::from_str("0.12").unwrap(),
+            inclusive: false,
+            applies_to: None,
+        };
 
-                let mark_paid_response = plugin.handle_event(mark_paid_event);
-                assert!(mark_paid_response.success);
-
-                // Verify status changed
-                if let Some(updated_invoice) = plugin.get_invoice(invoice.id) {
-                    match updated_invoice.status {
-                        InvoiceStatus::Paid => assert!(true),
-                        _ => panic!("Invoice should be marked as paid"),
-                    }
-                }
-            }
-        }
+        let computation = token.compute(Decimal::from(1000));
+        assert_eq!(computation.base, Decimal::from(1000));
+        assert_eq!(computation.tax, Decimal::from(120));
+        assert_eq!(computation.total, Decimal::from(1120));
     }
 }

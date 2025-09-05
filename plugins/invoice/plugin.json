@@ -1,0 +1,134 @@
+{
+  "id": "invoice-plugin",
+  "name": "Invoice Management Plugin",
+  "version": "0.1.0",
+  "plugin_type": "wasm",
+  "entry_point": "lib.wasm",
+  "commands": [
+    {
+      "name": "create_invoice",
+      "aliases": ["@invoice", "@inv"],
+      "description": "Create a new invoice",
+      "requirements": {
+        "required": [
+          {
+            "token_type": "entity_ref",
+            "description": "Client reference",
+            "multiple": false,
+            "validation": "entity_type == 'client'"
+          },
+          {
+            "token_type": "amount",
+            "description": "Invoice amount",
+            "multiple": false
+          }
+        ],
+        "optional": [
+          {
+            "token_type": "quantity",
+            "description": "Item quantities",
+            "multiple": true
+          }
+        ],
+        "defaults": [
+          {
+            "token_type": "tax",
+            "default_value": {
+              "type": "tax:vat:ph",
+              "rate": 0.12,
+              "inclusive": false
+            },
+            "condition": null
+          }
+        ],
+        "validators": [],
+        "allow_partial": false
+      },
+      "examples": [
+        "@invoice create client:uriah amount:1000",
+        "create invoice for uriah with 5kg pineapple at 1000 pesos"
+      ]
+    },
+    {
+      "name": "list_invoices",
+      "aliases": ["@invoices"],
+      "description": "List invoices",
+      "requirements": {
+        "required": [],
+        "optional": [
+          {
+            "token_type": "entity_ref",
+            "description": "Filter by client",
+            "multiple": false,
+            "validation": "entity_type == 'client'"
+          }
+        ],
+        "defaults": [],
+        "validators": [],
+        "allow_partial": true
+      },
+      "examples": [
+        "@invoices",
+        "@invoices client:uriah"
+      ]
+    }
+  ],
+  "token_types": [
+    {
+      "type_name": "tax:vat:ph",
+      "patterns": ["12% VAT", "VAT", "tax"],
+      "creator_class": "PhilippineVatToken",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "rate": {
+            "type": "number",
+            "const": 0.12
+          },
+          "inclusive": {
+            "type": "boolean"
+          },
+          "applies_to": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": ["rate"]
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "plugin_id": "company-plugin",
+      "version": "0.1.0",
+      "required": false
+    }
+  ],
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "default_currency": {
+        "type": "string",
+        "enum": ["PHP", "USD", "EUR"],
+        "default": "PHP"
+      },
+      "tax_rate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0.12
+      },
+      "auto_numbering": {
+        "type": "boolean",
+        "default": true
+      }
+    }
+  },
+  "metadata": {
+    "author": "KiloCode",
+    "description": "Complete invoice management with tax calculation and accounting integration",
+    "tags": ["invoice", "accounting", "tax", "business"],
+    "license": "MIT",
+    "repository": "https://github.com/kilocode/taxtalk"
+  }
+}

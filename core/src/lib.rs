@@ -4,11 +4,17 @@
 pub mod event_bus;
 pub mod manifest;
 pub mod plugin_loader;
+pub mod plugin_system;
+pub mod plugins;
 pub mod schema;
 pub mod tokenizer;
+pub mod tokens;
 
-use std::collections::HashMap;
+pub use plugin_system::{ExecutionResult, PluginSystem};
+pub use tokens::*;
+
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -44,7 +50,10 @@ impl PluginSystem {
         }
     }
 
-    pub async fn process_message(&mut self, message: ChatMessage) -> Result<PluginResponse, Box<dyn std::error::Error>> {
+    pub async fn process_message(
+        &mut self,
+        message: ChatMessage,
+    ) -> Result<PluginResponse, Box<dyn std::error::Error>> {
         // Parse the message
         let parsed_command = self.tokenizer.parse_command(&message.content)?;
 
@@ -65,14 +74,22 @@ impl PluginSystem {
         })
     }
 
-    pub fn load_plugin(&mut self, manifest_path: &std::path::Path, wasm_path: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn load_plugin(
+        &mut self,
+        manifest_path: &std::path::Path,
+        wasm_path: &std::path::Path,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let manifest = manifest::PluginManifest::from_file(manifest_path)?;
         self.plugin_loader.load_plugin(wasm_path, manifest)?;
         Ok(())
     }
 
     pub fn list_plugins(&self) -> Vec<String> {
-        self.plugin_loader.list_plugins().into_iter().map(|s| s.to_string()).collect()
+        self.plugin_loader
+            .list_plugins()
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect()
     }
 
     pub fn add_schema(&mut self, name: String, schema: schema::JsonSchema) {
