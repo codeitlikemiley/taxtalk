@@ -1,0 +1,139 @@
+{
+  "id": "company",
+  "name": "Company Management Plugin",
+  "version": "1.0.0",
+  "plugin_type": "Native",
+  "entry_point": "lib.rs",
+  "commands": [
+    {
+      "command": "register",
+      "aliases": ["create", "setup"],
+      "description": "Register a new company",
+      "requirements": {
+        "required": [
+          {
+            "token_type": "entity:company",
+            "description": "Company name",
+            "multiple": false
+          }
+        ],
+        "optional": [
+          {
+            "token_type": "identifier:tin",
+            "description": "Tax Identification Number",
+            "multiple": false
+          },
+          {
+            "token_type": "address",
+            "description": "Company address",
+            "multiple": false
+          },
+          {
+            "token_type": "contact:phone",
+            "description": "Phone number",
+            "multiple": false
+          },
+          {
+            "token_type": "contact:email",
+            "description": "Email address",
+            "multiple": false
+          }
+        ],
+        "defaults": []
+      }
+    },
+    {
+      "command": "update",
+      "aliases": ["edit", "modify"],
+      "description": "Update company information",
+      "requirements": {
+        "required": [
+          {
+            "token_type": "entity_ref",
+            "description": "Company to update",
+            "multiple": false
+          }
+        ],
+        "optional": [
+          {
+            "token_type": "identifier:tin",
+            "description": "Tax Identification Number",
+            "multiple": false
+          },
+          {
+            "token_type": "address",
+            "description": "Company address",
+            "multiple": false
+          },
+          {
+            "token_type": "contact:phone",
+            "description": "Phone number",
+            "multiple": false
+          },
+          {
+            "token_type": "contact:email",
+            "description": "Email address",
+            "multiple": false
+          }
+        ],
+        "defaults": []
+      }
+    },
+    {
+      "command": "list",
+      "aliases": ["show", "display"],
+      "description": "List all companies",
+      "requirements": {
+        "required": [],
+        "optional": [],
+        "defaults": []
+      }
+    }
+  ],
+  "token_types": [
+    {
+      "type_name": "entity:company",
+      "patterns": ["company:\\w+", "@company\\s+\\w+"],
+      "creator_class": "CompanyEntityCreator"
+    },
+    {
+      "type_name": "identifier:tin",
+      "patterns": ["\\d{3}-\\d{3}-\\d{3}-\\d{3}", "TIN[:\\s]?\\d{9,12}"],
+      "creator_class": "TinIdentifierCreator"
+    }
+  ],
+  "dependencies": [],
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "auto_validate_tin": {
+        "type": "boolean",
+        "default": true,
+        "description": "Automatically validate Philippine TIN format"
+      },
+      "require_bir_registration": {
+        "type": "boolean",
+        "default": false,
+        "description": "Require BIR registration number for companies"
+      },
+      "default_vat_registration": {
+        "type": "boolean",
+        "default": true,
+        "description": "Default VAT registration status for new companies"
+      },
+      "rdo_code": {
+        "type": "string",
+        "default": "",
+        "description": "Revenue District Office code"
+      }
+    }
+  },
+  "required_capabilities": [],
+  "metadata": {
+    "author": "TaxTalk Team",
+    "description": "Manages company registration and information for Philippine businesses",
+    "homepage": "https://taxtalk.ph",
+    "license": "MIT",
+    "tags": ["company", "registration", "business", "philippines", "bir", "tin"]
+  }
+}

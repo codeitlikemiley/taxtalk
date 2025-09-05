@@ -1,16 +1,16 @@
 [package]
-name = "company"
-version = "0.1.0"
-edition = "2024"
+name = "company-plugin"
+version = "1.0.0"
+edition = "2021"
 
 [workspace]
-
-[lib]
-crate-type = ["cdylib"]
 
 [dependencies]
 # WASM bindings - REQUIRED
 wit-bindgen = "0.45.0"
+
+# Core dependency
+taxtalk_core = { path = "../../core" }
 
 # Serialization - REQUIRED (must match core versions)
 serde = { version = "1.0.219", features = ["derive"] }
@@ -18,7 +18,14 @@ serde_json = "1.0.143"
 
 # Error handling - REQUIRED
 thiserror = "2.0"
+anyhow = "1.0.93"
+
+# Async trait support
+async-trait = "0.1.83"
 
 # Utilities - REQUIRED (must match core version)
 uuid = { version = "1.10.0", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
+
+[lib]
+crate-type = ["cdylib"]  # Required for WASM builds
