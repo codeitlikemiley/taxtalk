@@ -23,31 +23,31 @@ When working with the `core/` layer, **ALWAYS** use these exact versions:
 
 ```toml
 # WASM Runtime - REQUIRED
-wasmtime = "36.0.1"
+wasmtime = "36.0.2"
 
 # Serialization - REQUIRED  
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.143"
-serde_with = "3.12.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_with = "3"
 
 # Async runtime - REQUIRED
-tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread", "fs", "signal"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "fs", "signal"] }
 
 # Parsing & Tokenization - REQUIRED
 nom = "8.0.0" 
-tokenizers = "0.21.2"
+tokenizers = "0.22.0"
 
 # Error handling - REQUIRED
 thiserror = "2.0"
 
 # Logging - REQUIRED
-tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
+tracing = "0.1.41"
+tracing-subscriber = "0.3.20"
 
 # Utilities - REQUIRED
 async-trait = "0.1.81"
 uuid = { version = "1.10.0", features = ["v4"] }
-notify = "6.1.1"
+notify = "8.2.0"
 ```
 
 ### Optional Core Crates
@@ -80,8 +80,8 @@ serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.143"
 
 # Logging - REQUIRED (must match core versions)
-tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
+tracing = "0.1.41"
+tracing-subscriber = "0.3.20"
 
 # Core dependency - REQUIRED
 core = { path = "../core" }
@@ -100,7 +100,7 @@ For **EVERY** plugin in `plugins/*/`, **ALWAYS** use these exact versions:
 
 ```toml
 # WASM bindings - REQUIRED
-wit-bindgen = "0.44.0"
+wit-bindgen = "0.45.0"
 
 # Serialization - REQUIRED (must match core versions)
 serde = { version = "1.0.219", features = ["derive"] }
@@ -244,7 +244,7 @@ mockall = "0.13.1"
 ### Example Documentation
 ```toml
 # Plugin runtime - enables dynamic WASM execution with sandboxing
-wasmtime = "36.0.1"
+wasmtime = "36.0.2"
 
 # JSON serialization - required for plugin communication protocol  
 serde_json = "1.0.143"

@@ -170,12 +170,12 @@ serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
 tokio = { version = "1.40.0", features = ["macros", "rt-multi-thread"] }
 nom = "8.0.0"
-tokenizers = "0.21.2"
-notify = "6.1.1"
+tokenizers = "0.22.0"
+notify = "8.2.0"
 uuid = { version = "1.10.0", features = ["v4"] }
 thiserror = "1.0.65"
-tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
+tracing = "0.1.41"
+tracing-subscriber = "0.3.20"
 ```
 
 ## Runtime Architecture
