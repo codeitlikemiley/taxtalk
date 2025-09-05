@@ -1,0 +1,91 @@
+{
+  "id": "invoice",
+  "name": "Invoice Management Plugin",
+  "version": "1.0.0",
+  "plugin_type": "Native",
+  "entry_point": "lib.rs",
+  "commands": [
+    {
+      "command": "invoice",
+      "aliases": ["bill", "charge"],
+      "description": "Create an invoice for a customer",
+      "requirements": {
+        "required": [
+          {
+            "token_type": "entity_ref",
+            "description": "Customer to invoice",
+            "multiple": false
+          },
+          {
+            "token_type": "amount",
+            "description": "Invoice amount",
+            "multiple": false
+          }
+        ],
+        "optional": [
+          {
+            "token_type": "date",
+            "description": "Invoice date",
+            "multiple": false
+          },
+          {
+            "token_type": "terms",
+            "description": "Payment terms",
+            "multiple": false
+          },
+          {
+            "token_type": "tax:vat:ph",
+            "description": "VAT configuration",
+            "multiple": false
+          }
+        ],
+        "defaults": [
+          {
+            "token_type": "tax:vat:ph",
+            "value": {
+              "rate": 0.12,
+              "inclusive": true
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "token_types": [
+    {
+      "type_name": "invoice:number",
+      "patterns": ["INV-\\d+", "SI-\\d+"],
+      "creator_class": "InvoiceNumberCreator"
+    }
+  ],
+  "dependencies": [],
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "invoice_prefix": {
+        "type": "string",
+        "default": "INV"
+      },
+      "auto_generate_number": {
+        "type": "boolean",
+        "default": true
+      },
+      "default_terms": {
+        "type": "number",
+        "default": 30
+      },
+      "apply_vat_by_default": {
+        "type": "boolean",
+        "default": true
+      }
+    }
+  },
+  "required_capabilities": [],
+  "metadata": {
+    "author": "TaxTalk Team",
+    "description": "Manages invoicing with Philippine tax compliance",
+    "homepage": "https://taxtalk.ph",
+    "license": "MIT",
+    "tags": ["invoice", "billing", "accounting", "philippines", "vat"]
+  }
+}

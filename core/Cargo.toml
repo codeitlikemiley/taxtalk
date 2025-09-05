@@ -1,43 +1,50 @@
 [package]
 name = "taxtalk_core"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
 
 [dependencies]
-# WASM Runtime - REQUIRED
-wasmtime = "36.0.2"
-
-# Serialization - REQUIRED
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.143"
-serde_with = "3"
-
-# Async runtime - REQUIRED
-tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread", "fs", "signal"] }
-
-# Parsing & Tokenization - REQUIRED
-nom = "8.0.0"
-tokenizers = "0.22.0"
-
-# Error handling - REQUIRED
-thiserror = "2.0"
-
-# Logging - REQUIRED
-tracing = "0.1.41"
-tracing-subscriber = "0.3.20"
-
-# Utilities - REQUIRED
-async-trait = "0.1.81"
-uuid = { version = "1.10.0", features = ["v4", "serde"] }
-notify = "8.2.0"
-chrono = { version = "0.4", features = ["serde"] }
-wasmtime-wasi = "36.0.2"
-
-# Optional
-# Decimal support for financial calculations
-rust_decimal = { version = "1.35", features = ["serde"] }
-sqlx = { version = "0.8.2", features = ["sqlite", "runtime-tokio-rustls", "macros"] }
+anyhow.workspace = true
+async-sse = "5.1.0"
+async-trait.workspace = true
+chrono = { workspace = true , features = ["serde"] }
+crux_core.workspace = true
+crux_http.workspace = true
+facet.workspace = true
+futures.workspace = true
+regex.workspace = true
+rust_decimal.workspace = true
+rust_decimal_macros.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+url.workspace = true
+uuid.workspace = true
+wasmtime.workspace = true
+log = { workspace = true, optional = true }
+pretty_env_logger = { workspace = true, optional = true }
 
 [dev-dependencies]
-tempfile = "3.13"
-tokio-test = "0.4"
+insta.workspace = true
+
+# not wasm
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+uniffi = "0.29.4"
+
+# wasm32-unknown-unknown, but not wasm32-wasip2
+[target.'cfg(any(target_family = "wasm", not(all(target_os = "wasi", target_env = "p2"))))'.dependencies]
+wasm-bindgen.workspace = true
+js-sys.workspace = true
+
+# wasm32-wasip2
+[target.'cfg(all(target_os = "wasi", target_env = "p2"))'.dependencies]
+crux_core.workspace = true
+crux_http.workspace = true
+wit-bindgen.workspace = true
+
+[features]
+cli = ["crux_core/cli", "dep:log", "dep:pretty_env_logger"]
+facet_typegen = ["crux_core/facet_typegen"]

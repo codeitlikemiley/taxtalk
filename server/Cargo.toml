@@ -20,7 +20,7 @@ tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 
 # Core dependency - REQUIRED
-taxtalk_core = { path = "../core", package = "taxtalk_core" }
+taxtalk_core = { path = "../core" }
 
 # Additional dependencies for WebSocket and chat
 uuid = { version = "1.10.0", features = ["v4", "serde"] }
