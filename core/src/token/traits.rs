@@ -92,17 +92,17 @@ pub enum ValidationError {
 impl std::fmt::Display for ValidationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ValidationError::InvalidToken { reason } => write!(f, "Invalid token: {}", reason),
+            ValidationError::InvalidToken { reason } => write!(f, "Invalid token: {reason}"),
             ValidationError::IncompatibleTokens { token1, token2 } => {
-                write!(f, "Incompatible tokens: {} and {}", token1, token2)
+                write!(f, "Incompatible tokens: {token1} and {token2}")
             }
             ValidationError::MissingRequiredField { field } => {
-                write!(f, "Missing required field: {}", field)
+                write!(f, "Missing required field: {field}")
             }
             ValidationError::InvalidValue { field, value } => {
-                write!(f, "Invalid value for field {}: {}", field, value)
+                write!(f, "Invalid value for field {field}: {value}")
             }
-            ValidationError::Custom(msg) => write!(f, "{}", msg),
+            ValidationError::Custom(msg) => write!(f, "{msg}"),
         }
     }
 }

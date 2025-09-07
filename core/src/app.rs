@@ -3,6 +3,7 @@ use crux_core::{
     macros::effect,
     render::{RenderOperation, render},
 };
+use facet::Facet;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Serialize)]
@@ -10,12 +11,12 @@ pub struct Model {
     // Add your application state here
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Facet, Serialize, Deserialize, Debug, Clone, Default)]
 pub struct ViewModel {
     // Add your view model fields here
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Facet, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[repr(C)]
 pub enum Event {
     // Add your application events here

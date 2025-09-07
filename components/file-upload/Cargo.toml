@@ -1,0 +1,28 @@
+[package]
+name = "taxtalk-file-upload"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+leptos.workspace = true
+web-sys = { workspace = true, features = ["File", "DragEvent", "DataTransfer", "FileList", "HtmlInputElement", "FileReader", "ProgressEvent"] }
+wasm-bindgen.workspace = true
+uuid.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+taxtalk-ui-core.workspace = true
+gloo-timers.workspace = true
+console_error_panic_hook.workspace = true
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[features]
+default = []
+hydrate = ["leptos/hydrate"]
+ssr = ["leptos/ssr"]
+
+[[example]]
+name = "basic"

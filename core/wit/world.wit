@@ -1,8 +1,0 @@
-package crux:shared-lib;
-
-world shared {
-    export core;
-    import http: func(request: string) -> string;
-    import render: func(view: string);
-    import kv: func(key: string, value: string);
-}

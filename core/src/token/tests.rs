@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::token::*;
     use rust_decimal_macros::dec;
     

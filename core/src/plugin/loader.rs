@@ -69,7 +69,7 @@ impl PluginLoader {
     /// Load a native Rust plugin
     async fn load_native_plugin(
         &self,
-        path: &Path,
+        _path: &Path,
         manifest: &PluginManifest,
     ) -> Result<PluginInstance, Error> {
         // For compiled-in plugins, we'd use the registered factories
@@ -119,7 +119,7 @@ impl PluginLoader {
         
         // Example host function
         linker.func_wrap("host", "log", |message: i32| {
-            println!("WASM plugin log: {}", message);
+            println!("WASM plugin log: {message}");
         })?;
         
         Ok(linker)

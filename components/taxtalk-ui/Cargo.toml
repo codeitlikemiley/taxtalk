@@ -1,0 +1,19 @@
+[package]
+name = "taxtalk-ui"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "TaxTalk UI Component Library"
+
+[dependencies]
+taxtalk-ui-core = { workspace = true }
+taxtalk-file-upload = { path = "../file-upload", version = "0.1.0" }
+taxtalk-dynamic-table = { path = "../dynamic-table", version = "0.1.0" }
+# taxtalk-conditional-form = { path = "../conditional-form", version = "0.1.0" }
+# taxtalk-receipt-scanner = { path = "../receipt-scanner", version = "0.1.0" }
+
+[features]
+default = []
+hydrate = ["taxtalk-ui-core/hydrate", "taxtalk-file-upload/hydrate", "taxtalk-dynamic-table/hydrate"]
+ssr = ["taxtalk-ui-core/ssr", "taxtalk-file-upload/ssr", "taxtalk-dynamic-table/ssr"]

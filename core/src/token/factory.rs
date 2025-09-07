@@ -20,6 +20,12 @@ pub struct TokenFactory {
     creators: HashMap<String, Box<dyn TokenCreator>>,
 }
 
+impl Default for TokenFactory {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TokenFactory {
     pub fn new() -> Self {
         let mut factory = Self {
@@ -91,7 +97,7 @@ impl TokenCreator for AmountCreator {
     fn create(&self, input: &str, position: TokenPosition) -> Result<Box<dyn Token>> {
         // Parse amount from input
         let value = input.parse::<rust_decimal::Decimal>()
-            .unwrap_or_else(|_| rust_decimal::Decimal::ZERO);
+            .unwrap_or(rust_decimal::Decimal::ZERO);
         
         Ok(Box::new(Amount {
             base: BaseTokenFields::new(input.to_string(), position),
@@ -196,7 +202,7 @@ impl TokenCreator for QuantityCreator {
     
     fn create(&self, input: &str, position: TokenPosition) -> Result<Box<dyn Token>> {
         let parts: Vec<&str> = input.split_whitespace().collect();
-        let value = parts.get(0)
+        let value = parts.first()
             .and_then(|s| s.parse::<rust_decimal::Decimal>().ok())
             .unwrap_or(rust_decimal::Decimal::ONE);
         let unit = parts.get(1).map(|s| s.to_string());
@@ -252,7 +258,7 @@ impl TokenCreator for EntityRefCreator {
     fn create(&self, input: &str, position: TokenPosition) -> Result<Box<dyn Token>> {
         // Parse entity reference (e.g., "@client Juan" or "@supplier ABC Corp")
         let parts: Vec<&str> = input.trim_start_matches('@').split_whitespace().collect();
-        let entity_type = parts.get(0).unwrap_or(&"unknown").to_string();
+        let entity_type = parts.first().unwrap_or(&"unknown").to_string();
         let entity_id = parts.get(1..).map(|p| p.join(" ")).unwrap_or_default();
         
         Ok(Box::new(EntityRef {

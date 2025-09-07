@@ -1,0 +1,76 @@
+package taxtalk:plugin@0.1.0;
+
+interface types {
+    // Core types for all plugins
+    record token {
+        token-type: string,
+        value: string,
+        metadata: option<string>,
+    }
+    
+    record command-result {
+        success: bool,
+        data: option<string>,  // JSON string
+        error: option<string>,
+    }
+    
+    record plugin-manifest {
+        id: string,
+        name: string,
+        version: string,
+        description: string,
+        commands: list<command-def>,
+        schema: string,  // JSON Schema for type discovery
+    }
+    
+    record command-def {
+        name: string,
+        aliases: list<string>,
+        description: string,
+        examples: list<string>,
+    }
+}
+
+interface plugin {
+    use types.{token, command-result, plugin-manifest};
+    
+    // Every plugin must export these functions
+    get-manifest: func() -> plugin-manifest;
+    execute: func(command: string, tokens: list<token>) -> command-result;
+    get-schema: func() -> string;  // Returns JSON Schema for runtime type validation
+    
+    // Optional: for stateful plugins
+    get-state: func() -> option<string>;  // Returns JSON state
+    set-state: func(state: string) -> result<_, string>;
+}
+
+// Capabilities plugins can use
+interface store {
+    get: func(key: string) -> option<string>;
+    set: func(key: string, value: string) -> result<_, string>;
+    delete: func(key: string) -> result<_, string>;
+    list: func(prefix: string) -> list<string>;
+}
+
+interface http {
+    record request {
+        method: string,
+        url: string,
+        headers: list<tuple<string, string>>,
+        body: option<string>,
+    }
+    
+    record response {
+        status: u16,
+        headers: list<tuple<string, string>>,
+        body: string,
+    }
+    
+    fetch: func(req: request) -> result<response, string>;
+}
+
+world plugin-world {
+    import store;
+    import http;
+    export plugin;
+}

@@ -109,6 +109,12 @@ pub struct MetadataPattern {
     pub required_tags: Vec<String>,
 }
 
+impl Default for MetadataPattern {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MetadataPattern {
     pub fn new() -> Self {
         Self {
@@ -166,11 +172,11 @@ impl TokenPattern for MetadataPattern {
         let mut parts = vec![];
         
         if let Some(ref plugin) = self.source_plugin {
-            parts.push(format!("plugin={}", plugin));
+            parts.push(format!("plugin={plugin}"));
         }
         
         if let Some(conf) = self.min_confidence {
-            parts.push(format!("confidence>={}", conf));
+            parts.push(format!("confidence>={conf}"));
         }
         
         if !self.required_tags.is_empty() {

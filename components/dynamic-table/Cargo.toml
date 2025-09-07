@@ -1,0 +1,27 @@
+[package]
+name = "taxtalk-dynamic-table"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+leptos.workspace = true
+web-sys = { workspace = true, features = ["HtmlInputElement", "HtmlSelectElement", "HtmlTextAreaElement"] }
+wasm-bindgen.workspace = true
+uuid.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+taxtalk-ui-core.workspace = true
+console_error_panic_hook.workspace = true
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[features]
+default = []
+hydrate = ["leptos/hydrate"]
+ssr = ["leptos/ssr"]
+
+[[example]]
+name = "basic"

@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 # Web server - REQUIRED
-axum = { version = "0.7.5", features = ["json", "ws"] }
+axum = { workspace = true, features = ["json", "ws", "multipart"] }
 tower = "0.5.1"
 
 # Async runtime - REQUIRED (must match core version)
@@ -26,6 +26,7 @@ taxtalk_core = { path = "../core" }
 uuid = { version = "1.10.0", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 tower-http = { version = "0.6.6", features = ["cors"] }
+anyhow = "1.0"
 
 [dev-dependencies]
 axum-test = "15.7.1"

@@ -1,0 +1,54 @@
+[package]
+name = "web"
+version = "0.1.0"
+edition = "2024"
+authors = ["codeitlikemiley <codeitlikemiley@gmail.com>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+leptos = { version = "0.8", features = ["csr"] }
+leptos_meta = { version = "0.8" }
+leptos_router = { version = "0.8" }
+console_log = "1"
+log = "0.4"
+console_error_panic_hook = "0.1"
+
+# For HTTP requests
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# For unique IDs and timestamps
+uuid = { version = "1", features = ["v4", "js"] }
+chrono = { version = "0.4", features = ["wasmbind"] }
+
+# Web APIs
+web-sys = { version = "0.3", features = [
+    "FormData", "File", "FileList", "HtmlInputElement", "HtmlElement",
+    "Selection", "Range", "ClipboardEvent", "DataTransfer", "Node",
+    "Text", "Document", "Window", "KeyboardEvent", "Storage"
+] }
+wasm-bindgen = "0.2"
+gloo-timers = { version = "0.3", features = ["futures"] }
+regex = "1.10"
+
+# utils
+# strum = { version = "0.25", features = ["derive", "strum_macros"] }
+# strum_macros = "0.25"
+
+
+[dev-dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-test = "0.3"
+web-sys = { version = "0.3", features = ["Document", "Window"] }
+
+
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[lints.clippy]
+empty_docs = "allow"

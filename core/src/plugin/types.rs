@@ -35,6 +35,12 @@ pub struct PluginState {
     pub custom_state: Value,
 }
 
+impl Default for PluginState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PluginState {
     pub fn new() -> Self {
         Self {
@@ -80,13 +86,13 @@ pub enum PluginError {
 impl std::fmt::Display for PluginError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PluginError::NotFound { plugin_id } => write!(f, "Plugin not found: {}", plugin_id),
-            PluginError::LoadFailed { plugin_id, reason } => write!(f, "Failed to load plugin {}: {}", plugin_id, reason),
-            PluginError::ExecutionFailed { plugin_id, reason } => write!(f, "Plugin {} execution failed: {}", plugin_id, reason),
-            PluginError::InvalidManifest { reason } => write!(f, "Invalid manifest: {}", reason),
-            PluginError::DependencyMissing { dependency } => write!(f, "Missing dependency: {}", dependency),
+            PluginError::NotFound { plugin_id } => write!(f, "Plugin not found: {plugin_id}"),
+            PluginError::LoadFailed { plugin_id, reason } => write!(f, "Failed to load plugin {plugin_id}: {reason}"),
+            PluginError::ExecutionFailed { plugin_id, reason } => write!(f, "Plugin {plugin_id} execution failed: {reason}"),
+            PluginError::InvalidManifest { reason } => write!(f, "Invalid manifest: {reason}"),
+            PluginError::DependencyMissing { dependency } => write!(f, "Missing dependency: {dependency}"),
             PluginError::VersionConflict { plugin_id, required, found } => {
-                write!(f, "Version conflict for {}: required {}, found {}", plugin_id, required, found)
+                write!(f, "Version conflict for {plugin_id}: required {required}, found {found}")
             }
         }
     }

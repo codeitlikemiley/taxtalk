@@ -1,29 +1,21 @@
-mod app;
-mod capabilities;
-mod config;
-mod credentials;
-mod ffi;
-pub mod token;
+// New simplified core without Crux
+pub mod plugin_host;
+pub mod plugin_registry;
+pub mod router;
 pub mod plugin;
+pub mod token;
+pub mod tokenizer;
+pub mod database;
+pub mod repositories;
+pub mod validation;
+pub mod nlp;
 
-pub use crux_core::Core;
-pub use crux_http as http;
+pub use plugin_host::PluginHost;
+pub use plugin_registry::PluginRegistry;
+pub use router::CommandRouter;
+pub use database::{DbPool, init_database};
+pub use validation::{TokenValidator, ValidationResult, GuidedSession, SessionState};
 
-pub use app::*;
-
-#[cfg(not(target_family = "wasm"))]
-const _: () = assert!(
-    uniffi::check_compatible_version("0.29.4"),
-    "please use uniffi v0.29.4"
-);
-#[cfg(not(target_family = "wasm"))]
-uniffi::setup_scaffolding!();
-
-#[cfg(not(target_family = "wasm"))]
-pub use ffi::uniffi_ffi::CoreFFI;
-
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
-pub use ffi::wasm_ffi::CoreFFI;
-
-#[cfg(all(target_os = "wasi", target_env = "p2"))]
-pub use ffi::wasip2::CoreFFI;
+// Re-export common types
+pub use anyhow::{Result, Error};
+pub use serde_json::Value;

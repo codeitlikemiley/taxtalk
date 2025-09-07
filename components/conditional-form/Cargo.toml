@@ -1,0 +1,21 @@
+[package]
+name = "taxtalk-conditional-form"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "taxtalk-conditional-form"
+path = "src/main.rs"
+
+[dependencies]
+leptos = { workspace = true }
+console_error_panic_hook = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+web-sys = { workspace = true }
+wasm-bindgen = { workspace = true }
+taxtalk-ui-core = { path = "../core" }
+

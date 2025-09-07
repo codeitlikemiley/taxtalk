@@ -23,6 +23,12 @@ struct PluginRoute {
     aliases: Vec<String>,
 }
 
+impl Default for CommandRouter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CommandRouter {
     pub fn new() -> Self {
         Self {
@@ -46,14 +52,14 @@ impl CommandRouter {
             // Register main command
             self.command_map
                 .entry(command_manifest.command.clone())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(route.clone());
             
             // Register aliases
             for alias in &command_manifest.aliases {
                 self.command_map
                     .entry(alias.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(route.clone());
             }
         }
@@ -168,7 +174,7 @@ impl CommandRouter {
     pub fn suggest_completions(&self, partial_command: &str) -> Vec<String> {
         let mut suggestions = Vec::new();
         
-        for (command, _) in &self.command_map {
+        for command in self.command_map.keys() {
             if command.starts_with(partial_command) {
                 suggestions.push(command.clone());
             }

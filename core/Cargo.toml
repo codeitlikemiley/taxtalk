@@ -8,43 +8,30 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 anyhow.workspace = true
-async-sse = "5.1.0"
 async-trait.workspace = true
 chrono = { workspace = true , features = ["serde"] }
-crux_core.workspace = true
-crux_http.workspace = true
-facet.workspace = true
 futures.workspace = true
 regex.workspace = true
 rust_decimal.workspace = true
 rust_decimal_macros.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-tokio.workspace = true
+tokio = { workspace = true, features = ["full"] }
 url.workspace = true
 uuid.workspace = true
-wasmtime.workspace = true
+wasmtime = { workspace = true, features = ["component-model"] }
 log = { workspace = true, optional = true }
 pretty_env_logger = { workspace = true, optional = true }
+tempfile = "3.8"
+sqlx = { workspace = true }
+fuzzy-matcher = "0.3"
 
 [dev-dependencies]
 insta.workspace = true
 
-# not wasm
-[target.'cfg(not(target_family = "wasm"))'.dependencies]
-uniffi = "0.29.4"
-
-# wasm32-unknown-unknown, but not wasm32-wasip2
-[target.'cfg(any(target_family = "wasm", not(all(target_os = "wasi", target_env = "p2"))))'.dependencies]
-wasm-bindgen.workspace = true
-js-sys.workspace = true
-
-# wasm32-wasip2
-[target.'cfg(all(target_os = "wasi", target_env = "p2"))'.dependencies]
-crux_core.workspace = true
-crux_http.workspace = true
-wit-bindgen.workspace = true
+[[bin]]
+name = "plugin_codegen"
+path = "src/bin/plugin_codegen.rs"
 
 [features]
-cli = ["crux_core/cli", "dep:log", "dep:pretty_env_logger"]
-facet_typegen = ["crux_core/facet_typegen"]
+default = []

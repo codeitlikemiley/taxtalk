@@ -1,0 +1,29 @@
+[
+  {
+    "id": "payments",
+    "name": "Payments Plugin",
+    "version": "0.1.0",
+    "description": "Built-in payments management plugin",
+    "wasm_path": "./data/plugins/plugins/payments.wasm",
+    "installed_at": "2025-09-06T00:52:45.387810Z",
+    "enabled": true
+  },
+  {
+    "id": "company",
+    "name": "Company Plugin",
+    "version": "0.1.0",
+    "description": "Built-in company management plugin",
+    "wasm_path": "./data/plugins/plugins/company.wasm",
+    "installed_at": "2025-09-06T00:52:45.386266Z",
+    "enabled": true
+  },
+  {
+    "id": "invoice",
+    "name": "Invoice Plugin",
+    "version": "0.1.0",
+    "description": "Built-in invoice management plugin",
+    "wasm_path": "./data/plugins/plugins/invoice.wasm",
+    "installed_at": "2025-09-06T00:52:45.387141Z",
+    "enabled": true
+  }
+]

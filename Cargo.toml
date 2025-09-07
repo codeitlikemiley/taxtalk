@@ -1,74 +1,109 @@
 [workspace]
+members = [
+    "core",
+    "server",
+    "web",
+]
+exclude = ["plugins/*", "components/*"]
 resolver = "3"
-members = ["core", "server"]
-exclude = ["plugins/*"]
 
 [workspace.package]
 authors = ["Uriah Galang <codeitlikemiley@gmail.com>"]
-edition = "2024"
-repository = "https://github.com/codeitlikemiley/topg/"
+keywords = [
+    "accounting",
+    "bookeeping",
+    "tax",
+    "plugin",
+    "wasm",
+]
 license = "MIT"
-keywords = ["accounting", "bookeeping", "tax", "plugin", "wasm"]
+repository = "https://github.com/codeitlikemiley/topg/"
+edition = "2024"
 rust-version = "1.88.0"
 
 [workspace.dependencies]
-# Core dependencies
 anyhow = "1"
-serde = "1"
-serde_json = "1"
 async-trait = "0.1"
-rust_decimal = { version = "1.36", features = ["serde"] }
-rust_decimal_macros = "1.36"
-regex = "1.11"
-wasmtime = "27.0"
-
-# Crux framework
-crux_core = { git = "https://github.com/redbadger/crux", rev = "f0d7d010b9c7c44d6e75e024719c87ab85275972", features = ["facet_typegen"] }
-crux_http = { git = "https://github.com/redbadger/crux", rev = "f0d7d010b9c7c44d6e75e024719c87ab85275972", features = ["facet_typegen"] }
-
-# Async runtime and utilities
+axum = "0.8.4"
+crossbeam-channel = "0.5"
+facet = "0.28.0"
 futures = "0.3"
 futures-util = "0.3"
-tokio = { version = "1", features = ["full"] }
-
-# WASM dependencies
-wasm-bindgen = "0.2"
 js-sys = "0.3"
-
-# Utility libraries
-chrono = { version = "0.4", features = ["serde"] }
-url = "2.5"
-rand = { version = "0.9", features = ["os_rng"] }
 log = "0.4"
-
-# Web framework dependencies
-leptos = { version = "0.8", features = ["csr"] }
-leptos_router = { version = "0.8" }
-axum = "0.8.4"
-
-# Development dependencies
-insta = { version = "1.43", features = ["yaml"] }
+pretty_env_logger = "0.5"
+regex = "1.11"
+rust_decimal_macros = "1.36"
+serde = "1"
+serde_json = "1"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-
-# Shared dependencies (used in 2+ packages)
-crossbeam-channel = "0.5"
-reqwest = { version = "0.12", features = ["stream", "json"] }
-uuid = { version = "1", features = ["v4", "serde"] }
+url = "2.5"
+wasm-bindgen = "0.2"
+wasmtime = "27.0"
 wit-bindgen = "0.45.0"
 
-# Platform-specific dependencies (not consolidated due to limited use)
-# async-sse = "5.1.0"                    # Only used in shared
-# clap = "4.5.41"                        # Only used in cli
-# console_error_panic_hook = "0.1.7"     # Only used in web
-# console_log = "1.0.0"                  # Only used in web
-facet = "0.28.0"                         # Used in core
-pretty_env_logger = "0.5"                # Used in core
-# futures-signals = "0.3.33"             # Only used in server
-# gloo-net = "0.6.0"                     # Only used in web
-# rmcp = "0.3.0"                         # Only used in mcp-server
-# schemars = "1.0"                       # Only used in mcp-server
-# tower-http = "0.6"                     # Only used in server
-# uniffi = "0.29.4"                      # Only used in shared
-# wasm-streams = "0.4.2"                 # Only used in web
-# wit-bindgen = "0.43.0"                 # Only used in shared
+[workspace.dependencies.chrono]
+version = "0.4"
+features = ["serde"]
+
+[workspace.dependencies.crux_core]
+git = "https://github.com/redbadger/crux"
+rev = "f0d7d010b9c7c44d6e75e024719c87ab85275972"
+features = ["facet_typegen"]
+
+[workspace.dependencies.crux_http]
+git = "https://github.com/redbadger/crux"
+rev = "f0d7d010b9c7c44d6e75e024719c87ab85275972"
+features = ["facet_typegen"]
+
+[workspace.dependencies.insta]
+version = "1.43"
+features = ["yaml"]
+
+[workspace.dependencies.leptos]
+version = "0.8"
+features = ["csr"]
+
+[workspace.dependencies.leptos_router]
+version = "0.8"
+
+[workspace.dependencies.rand]
+version = "0.9"
+features = ["os_rng"]
+
+[workspace.dependencies.reqwest]
+version = "0.12"
+features = [
+    "stream",
+    "json",
+]
+
+[workspace.dependencies.rust_decimal]
+version = "1.36"
+features = ["serde"]
+
+[workspace.dependencies.tokio]
+version = "1"
+features = ["full"]
+
+[workspace.dependencies.tracing-subscriber]
+version = "0.3"
+features = ["env-filter"]
+
+[workspace.dependencies.uuid]
+version = "1"
+features = [
+    "v4",
+    "v5",
+    "serde",
+]
+
+[workspace.dependencies.sqlx]
+version = "0.8"
+features = [
+    "runtime-tokio-native-tls",
+    "sqlite",
+    "migrate",
+    "chrono",
+    "uuid",
+]

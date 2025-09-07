@@ -11,5 +11,17 @@
     "files.watcherExclude": {
         "**/target/**": true,
         "**/node_modules/**": true
-    }
+    },
+    "rust-analyzer.rustfmt.overrideCommand": [
+        "leptosfmt",
+        "--stdin",
+        "--rustfmt"
+    ],
+    "editor.formatOnSave": true,
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    },
+    "files.associations": {
+        "*.rs": "rust"
+    },
 }

@@ -1,0 +1,129 @@
+{
+  "id": "payments",
+  "name": "Payments Management Plugin",
+  "version": "0.1.0",
+  "entry": "payments.wasm",
+  "capabilities": ["http", "kv"],
+  "commands": [
+    {
+      "command": "payment",
+      "aliases": ["pay", "receive", "collect"],
+      "description": "Record a payment received from a customer",
+      "requirements": {
+        "required": [
+          {
+            "token_type": "entity_ref",
+            "description": "Customer who made the payment",
+            "multiple": false
+          },
+          {
+            "token_type": "amount",
+            "description": "Payment amount",
+            "multiple": false
+          }
+        ],
+        "optional": [
+          {
+            "token_type": "date",
+            "description": "Payment date",
+            "multiple": false
+          },
+          {
+            "token_type": "identifier",
+            "description": "Invoice or reference number",
+            "multiple": false
+          },
+          {
+            "token_type": "payment_method",
+            "description": "Payment method (cash, check, bank transfer, etc)",
+            "multiple": false
+          },
+          {
+            "token_type": "tax:ewt",
+            "description": "Expanded withholding tax if applicable",
+            "multiple": false
+          }
+        ],
+        "defaults": []
+      }
+    },
+    {
+      "command": "refund",
+      "aliases": ["return", "credit"],
+      "description": "Process a refund to a customer",
+      "requirements": {
+        "required": [
+          {
+            "token_type": "entity_ref",
+            "description": "Customer to refund",
+            "multiple": false
+          },
+          {
+            "token_type": "amount",
+            "description": "Refund amount",
+            "multiple": false
+          }
+        ],
+        "optional": [
+          {
+            "token_type": "identifier",
+            "description": "Original payment reference",
+            "multiple": false
+          },
+          {
+            "token_type": "reason",
+            "description": "Reason for refund",
+            "multiple": false
+          }
+        ],
+        "defaults": []
+      }
+    }
+  ],
+  "token_types": [
+    {
+      "type_name": "payment:reference",
+      "patterns": ["PAY-\\d+", "REC-\\d+", "REF-\\d+"],
+      "creator_class": "PaymentReferenceCreator"
+    },
+    {
+      "type_name": "payment_method",
+      "patterns": ["cash", "check", "cheque", "bank transfer", "gcash", "maya", "credit card", "debit card"],
+      "creator_class": "PaymentMethodCreator"
+    }
+  ],
+  "dependencies": ["invoice"],
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "auto_apply_to_invoices": {
+        "type": "boolean",
+        "default": true,
+        "description": "Automatically apply payments to outstanding invoices"
+      },
+      "require_withholding_tax": {
+        "type": "boolean",
+        "default": false,
+        "description": "Require withholding tax information for professional services"
+      },
+      "default_payment_terms": {
+        "type": "number",
+        "default": 0,
+        "description": "Default days until payment is due (0 = immediate)"
+      },
+      "enable_partial_payments": {
+        "type": "boolean",
+        "default": true,
+        "description": "Allow partial payments on invoices"
+      }
+    }
+  },
+  "required_capabilities": [],
+  "metadata": {
+    "author": "TaxTalk Team",
+    "description": "Manages payment collection and refunds with Philippine tax compliance",
+    "homepage": "https://taxtalk.ph",
+    "license": "MIT",
+    "tags": ["payment", "collection", "refund", "accounting", "philippines", "ewt"]
+  }
+}

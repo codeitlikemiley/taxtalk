@@ -1,0 +1,167 @@
+/* FileUpload Component Styles with tui-fu prefix */
+
+.tui-fu-component {
+    width: 100%;
+}
+
+.tui-fu-hidden {
+    display: none;
+}
+
+.tui-fu-dropzone {
+    border: 2px dashed #d1d5db;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background-color: #fafafa;
+}
+
+.tui-fu-dropzone:hover {
+    border-color: #9ca3af;
+    background-color: #f9fafb;
+}
+
+.tui-fu-dropzone.tui-fu-dragging {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.tui-fu-content {
+    color: #6b7280;
+}
+
+.tui-fu-icon {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 0.75rem;
+    color: #9ca3af;
+}
+
+.tui-fu-title {
+    font-size: 1.125rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.tui-fu-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+}
+
+.tui-fu-info {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.tui-fu-error {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 0.25rem;
+    color: #b91c1c;
+    font-size: 0.875rem;
+}
+
+.tui-fu-preview {
+    margin-top: 1rem;
+}
+
+.tui-fu-preview-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+}
+
+.tui-fu-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+}
+
+.tui-fu-file {
+    position: relative;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    transition: box-shadow 0.3s ease;
+    background: white;
+}
+
+.tui-fu-file:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.tui-fu-file-content {
+    text-align: center;
+}
+
+.tui-fu-file-icon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 0.5rem;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+
+.tui-fu-file-icon.tui-fu-image {
+    background-color: #f3f4f6;
+}
+
+.tui-fu-file-icon.tui-fu-pdf {
+    background-color: #fee2e2;
+}
+
+.tui-fu-file-icon.tui-fu-document {
+    background-color: #dbeafe;
+}
+
+.tui-fu-file-name {
+    font-size: 0.75rem;
+    color: #4b5563;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 0.25rem;
+}
+
+.tui-fu-file-size {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.tui-fu-file-remove {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background-color: #ef4444;
+    color: white;
+    border-radius: 50%;
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.tui-fu-file:hover .tui-fu-file-remove {
+    opacity: 1;
+}
+
+.tui-fu-file-remove:hover {
+    background-color: #dc2626;
+}

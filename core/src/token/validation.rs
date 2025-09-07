@@ -11,6 +11,12 @@ pub trait ValidationRule: Send + Sync {
     fn name(&self) -> &str;
 }
 
+impl Default for TokenValidator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TokenValidator {
     pub fn new() -> Self {
         let mut validator = Self {
@@ -190,6 +196,12 @@ pub struct BusinessRuleValidator {
 pub trait BusinessRule: Send + Sync {
     fn validate(&self, tokens: &[Box<dyn Token>]) -> Result<(), ValidationError>;
     fn name(&self) -> &str;
+}
+
+impl Default for BusinessRuleValidator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BusinessRuleValidator {

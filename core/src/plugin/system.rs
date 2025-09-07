@@ -59,13 +59,13 @@ impl PluginSystem {
         self.plugins.write().await.insert(plugin_id.clone(), plugin.clone());
         
         // Initialize the plugin
-        if let PluginInstance::Native(ref p) = &plugin.instance {
+        if let PluginInstance::Native(ref _p) = &plugin.instance {
             // Initialize with config
             // Note: This would require the plugin to be mutable
             // In practice, you might handle this differently
         }
         
-        println!("Loaded plugin: {}", plugin_id);
+        println!("Loaded plugin: {plugin_id}");
         
         Ok(())
     }
@@ -77,7 +77,7 @@ impl PluginSystem {
             .ok_or_else(|| anyhow!("Plugin not found: {}", plugin_id))?;
         
         // Cleanup
-        if let PluginInstance::Native(ref p) = &plugin.instance {
+        if let PluginInstance::Native(ref _p) = &plugin.instance {
             // Call cleanup method
         }
         
@@ -85,7 +85,7 @@ impl PluginSystem {
         let mut router = self.router.write().await;
         router.unregister_plugin(plugin_id).await?;
         
-        println!("Unloaded plugin: {}", plugin_id);
+        println!("Unloaded plugin: {plugin_id}");
         
         Ok(())
     }
@@ -136,7 +136,7 @@ impl PluginSystem {
                 
                 let entity_ref = crate::token::EntityRef {
                     base: crate::token::BaseTokenFields::new(
-                        format!("{} {}", word, entity_id),
+                        format!("{word} {entity_id}"),
                         position,
                     ),
                     plugin: "core".to_string(),
@@ -195,7 +195,7 @@ impl PluginSystem {
     /// Hot-swap a plugin
     pub async fn hot_swap(&self, old_id: &str, new_path: &Path) -> Result<(), Error> {
         // Export state from old plugin
-        let old_state = {
+        let _old_state = {
             let plugins = self.plugins.read().await;
             if let Some(old_plugin) = plugins.get(old_id) {
                 self.loader.export_plugin_state(old_plugin).await?
@@ -222,7 +222,7 @@ impl PluginSystem {
         // Store in plugins map
         self.plugins.write().await.insert(new_plugin_id.clone(), new_plugin);
         
-        println!("Hot-swapped {} with plugin from {:?}", old_id, new_path);
+        println!("Hot-swapped {old_id} with plugin from {new_path:?}");
         
         Ok(())
     }

@@ -1,0 +1,17 @@
+[package]
+name = "payments-plugin"
+version = "1.0.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+# WASM bindings - REQUIRED
+wit-bindgen = "0.45.0"
+
+# Minimal serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[lib]
+crate-type = ["cdylib"]  # Required for WASM builds

@@ -1,0 +1,168 @@
+{
+  "id": "invoice",
+  "name": "Invoice Management Plugin",
+  "version": "2.0.0",
+  "plugin_type": "Native",
+  "entry_point": "lib.rs",
+  
+  "entities": [
+    {
+      "name": "invoice",
+      "plural": "invoices",
+      "description": "Sales invoice or bill",
+      "aliases": ["bill", "charge", "sales invoice"]
+    }
+  ],
+  
+  "commands": [
+    {
+      "command": "create",
+      "description": "Create a new entity",
+      "supports_entities": ["invoice"],
+      "requirements": {
+        "invoice": {
+          "required": [
+            {
+              "token_type": "@client",
+              "description": "Customer to invoice",
+              "multiple": false
+            },
+            {
+              "token_type": "amount",
+              "description": "Invoice amount",
+              "multiple": false
+            }
+          ],
+          "optional": [
+            {
+              "token_type": "@product",
+              "description": "Products or services",
+              "multiple": true
+            },
+            {
+              "token_type": "date",
+              "description": "Invoice date",
+              "multiple": false
+            },
+            {
+              "token_type": "terms",
+              "description": "Payment terms (e.g., net30)",
+              "multiple": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "command": "list",
+      "description": "List all entities",
+      "supports_entities": ["invoice"],
+      "requirements": {
+        "invoice": {
+          "optional": [
+            {
+              "token_type": "@client",
+              "description": "Filter by client",
+              "multiple": false
+            },
+            {
+              "token_type": "date_range",
+              "description": "Filter by date range",
+              "multiple": false
+            },
+            {
+              "token_type": "status",
+              "description": "Filter by status (paid/unpaid)",
+              "multiple": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "command": "update",
+      "description": "Update an existing entity",
+      "supports_entities": ["invoice"],
+      "requirements": {
+        "invoice": {
+          "required": [
+            {
+              "token_type": "@invoice",
+              "description": "Invoice to update",
+              "multiple": false
+            }
+          ],
+          "optional": [
+            {
+              "token_type": "amount",
+              "description": "New amount",
+              "multiple": false
+            },
+            {
+              "token_type": "status",
+              "description": "New status",
+              "multiple": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "command": "delete",
+      "description": "Delete an entity",
+      "supports_entities": ["invoice"],
+      "requirements": {
+        "invoice": {
+          "required": [
+            {
+              "token_type": "@invoice",
+              "description": "Invoice to delete",
+              "multiple": false
+            }
+          ]
+        }
+      }
+    }
+  ],
+  
+  "token_types": [
+    {
+      "type_name": "invoice_number",
+      "patterns": ["INV-\\d+", "SI-\\d+"],
+      "description": "Invoice number format"
+    },
+    {
+      "type_name": "terms",
+      "patterns": ["net\\d+", "\\d+ days", "immediate", "COD"],
+      "description": "Payment terms"
+    },
+    {
+      "type_name": "status",
+      "patterns": ["paid", "unpaid", "partial", "overdue", "cancelled"],
+      "description": "Invoice status"
+    }
+  ],
+  
+  "dependencies": [],
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "invoice_prefix": {
+        "type": "string",
+        "default": "INV"
+      },
+      "auto_generate_number": {
+        "type": "boolean",
+        "default": true
+      },
+      "default_terms": {
+        "type": "number",
+        "default": 30
+      },
+      "apply_vat_by_default": {
+        "type": "boolean",
+        "default": true
+      }
+    }
+  }
+}
