@@ -1,0 +1,152 @@
+/* EntityTag component styles with tui-et- prefix */
+
+.tui-et-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid;
+    transition: all 0.2s;
+    margin: 0.125rem;
+    gap: 0.25rem;
+}
+
+/* Entity type color schemes */
+.tui-et-client {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border-color: #93c5fd;
+}
+
+.tui-et-client:hover {
+    background-color: #bfdbfe;
+    border-color: #60a5fa;
+}
+
+.tui-et-supplier {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-color: #86efac;
+}
+
+.tui-et-supplier:hover {
+    background-color: #a7f3d0;
+    border-color: #34d399;
+}
+
+.tui-et-product {
+    background-color: #e9d5ff;
+    color: #6b21a8;
+    border-color: #c084fc;
+}
+
+.tui-et-product:hover {
+    background-color: #ddd6fe;
+    border-color: #a78bfa;
+}
+
+.tui-et-employee {
+    background-color: #fed7aa;
+    color: #9a3412;
+    border-color: #fb923c;
+}
+
+.tui-et-employee:hover {
+    background-color: #fbbf24;
+    border-color: #f97316;
+}
+
+.tui-et-invoice {
+    background-color: #e0e7ff;
+    color: #3730a3;
+    border-color: #a5b4fc;
+}
+
+.tui-et-invoice:hover {
+    background-color: #c7d2fe;
+    border-color: #818cf8;
+}
+
+.tui-et-payment {
+    background-color: #fce7f3;
+    color: #9f1239;
+    border-color: #f9a8d4;
+}
+
+.tui-et-payment:hover {
+    background-color: #fbcfe8;
+    border-color: #f472b6;
+}
+
+.tui-et-default {
+    background-color: #f3f4f6;
+    color: #374151;
+    border-color: #d1d5db;
+}
+
+.tui-et-default:hover {
+    background-color: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+/* Label styling */
+.tui-et-label {
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* Remove button styling */
+.tui-et-remove {
+    background: none;
+    border: none;
+    color: currentColor;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    opacity: 0.7;
+    padding: 0;
+    margin: 0;
+    margin-left: 0.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+}
+
+.tui-et-remove:hover {
+    opacity: 1;
+}
+
+.tui-et-remove:disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+}
+
+.tui-et-remove:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* Animation for removal */
+@keyframes tui-et-fade-out {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+.tui-et-tag.removing {
+    animation: tui-et-fade-out 0.2s ease-out forwards;
+}

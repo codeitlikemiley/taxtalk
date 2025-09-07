@@ -1,0 +1,213 @@
+/* Command Entity Input Component Styles */
+
+.cei-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Mode Indicator */
+.cei-mode-indicator {
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.cei-mode-command {
+    color: #2563eb;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.cei-mode-ai {
+    color: #7c3aed;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.cei-mode-icon {
+    font-size: 1.125rem;
+}
+
+/* Token Display */
+.cei-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    min-height: 2rem;
+}
+
+.cei-token {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.cei-token-command {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+
+.cei-token-entity {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+}
+
+.cei-token-params {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+/* Entity Selector */
+.cei-entity-selector {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.cei-entity-header {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+}
+
+.cei-entity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.cei-entity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    width: 100%;
+}
+
+.cei-entity-item:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.cei-entity-item-selected {
+    background: #eff6ff !important;
+    border-color: #3b82f6 !important;
+}
+
+.cei-entity-name {
+    font-weight: 500;
+    color: #111827;
+}
+
+.cei-entity-desc {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.cei-entity-hint {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Validation Error */
+.cei-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Input Field */
+.cei-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background: white;
+    transition: all 0.15s;
+}
+
+.cei-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.cei-input::placeholder {
+    color: #9ca3af;
+}
+
+/* Help Text */
+.cei-help {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Debug Info */
+.cei-debug {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 0.375rem;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.cei-debug > div {
+    margin-bottom: 0.25rem;
+}
+
+/* Scrollbar styling for entity list */
+.cei-entity-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.cei-entity-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.cei-entity-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.cei-entity-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

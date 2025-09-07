@@ -1,0 +1,227 @@
+/* Mixed Input Component Styles */
+
+.mi-container {
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Entity Tags */
+.mi-entity-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.mi-entity-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: white;
+    transition: all 0.15s;
+}
+
+.mi-entity-client {
+    background-color: #3b82f6;
+}
+
+.mi-entity-supplier {
+    background-color: #10b981;
+}
+
+.mi-entity-product {
+    background-color: #8b5cf6;
+}
+
+.mi-entity-employee {
+    background-color: #f97316;
+}
+
+.mi-entity-invoice {
+    background-color: #6366f1;
+}
+
+.mi-entity-payment {
+    background-color: #14b8a6;
+}
+
+.mi-entity-tag:hover {
+    transform: scale(1.05);
+}
+
+.mi-entity-type {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+}
+
+.mi-entity-name {
+    font-weight: 600;
+}
+
+.mi-entity-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-left: 0.25rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.125rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.mi-entity-remove:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.mi-entity-remove:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Input Wrapper */
+.mi-input-wrapper {
+    position: relative;
+}
+
+/* Textarea */
+.mi-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background: white;
+    resize: vertical;
+    min-height: 80px;
+    max-height: 300px;
+    transition: all 0.15s;
+}
+
+.mi-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mi-textarea.mi-focused {
+    border-color: #3b82f6;
+}
+
+.mi-textarea.mi-disabled {
+    background-color: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+.mi-textarea::placeholder {
+    color: #9ca3af;
+}
+
+/* Character Count */
+.mi-char-count {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+    background: white;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+}
+
+.mi-char-count.mi-char-warning {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* Helper Text */
+.mi-helper {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.mi-helper-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.mi-helper kbd {
+    display: inline-block;
+    padding: 0.125rem 0.375rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Scrollbar Styling */
+.mi-textarea::-webkit-scrollbar {
+    width: 8px;
+}
+
+.mi-textarea::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.mi-textarea::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+
+.mi-textarea::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .mi-textarea {
+        background: #1f2937;
+        border-color: #374151;
+        color: #f3f4f6;
+    }
+    
+    .mi-textarea:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+    }
+    
+    .mi-textarea.mi-disabled {
+        background-color: #111827;
+        color: #6b7280;
+    }
+    
+    .mi-char-count {
+        background: #1f2937;
+        color: #9ca3af;
+    }
+    
+    .mi-helper {
+        color: #9ca3af;
+    }
+    
+    .mi-helper kbd {
+        background: #374151;
+        border-color: #4b5563;
+        color: #e5e7eb;
+    }
+}

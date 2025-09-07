@@ -1,0 +1,14 @@
+[[proxy]]
+backend = "http://localhost:3000/api"
+
+[build]
+target = "index.html"
+dist = "dist"
+
+[watch]
+watch = ["src", "index.html", "Cargo.toml"]
+
+[serve]
+address = "127.0.0.1"
+port = 8089
+open = false

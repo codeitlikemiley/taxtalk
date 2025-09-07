@@ -1,0 +1,227 @@
+name: Component CI
+
+on:
+  push:
+    paths:
+      - 'components/**'
+      - '.github/workflows/component-ci.yml'
+  pull_request:
+    paths:
+      - 'components/**'
+      - '.github/workflows/component-ci.yml'
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test-matrix:
+    name: Test Component - ${{ matrix.component }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+          # Priority 1 - Token Resolution
+          - entity-tag
+          - token-autocomplete
+          - entity-combobox
+          - smart-command-input
+          - tagged-input
+          # Priority 2 - Forms
+          - simple-form
+          - mixed-input
+          - dual-mode-input
+          - command-entity-input
+          - multi-select-combobox
+          # Priority 3 - Smart UI
+          - smart-suggestions
+          - quick-actions
+          - command-palette
+          - inline-confirmation
+          # Priority 4 - Chat
+          - chat
+          - guided-chat
+          # Utilities
+          - file-upload
+          - dynamic-table
+          - conditional-form
+          - autocomplete-simple
+          - counter-btn
+          - plugins
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt, clippy
+      
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.component }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ matrix.component }}-
+            ${{ runner.os }}-cargo-
+      
+      - name: Check if component exists
+        id: check_component
+        run: |
+          if [ -d "components/${{ matrix.component }}" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "::warning::Component ${{ matrix.component }} does not exist yet"
+          fi
+      
+      - name: Run tests
+        if: steps.check_component.outputs.exists == 'true'
+        run: |
+          cd components/${{ matrix.component }}
+          cargo test --all-features
+      
+      - name: Check formatting
+        if: steps.check_component.outputs.exists == 'true'
+        run: |
+          cd components/${{ matrix.component }}
+          cargo fmt -- --check
+      
+      - name: Run clippy
+        if: steps.check_component.outputs.exists == 'true'
+        run: |
+          cd components/${{ matrix.component }}
+          cargo clippy -- -D warnings
+      
+      - name: Install trunk
+        if: steps.check_component.outputs.exists == 'true'
+        run: |
+          wget -qO- https://github.com/trunk-rs/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf-
+          sudo mv trunk /usr/local/bin/
+      
+      - name: Install wasm32 target
+        if: steps.check_component.outputs.exists == 'true'
+        run: rustup target add wasm32-unknown-unknown
+      
+      - name: Build WASM
+        if: steps.check_component.outputs.exists == 'true'
+        run: |
+          cd components/${{ matrix.component }}
+          trunk build --release
+      
+      - name: Measure bundle size
+        if: steps.check_component.outputs.exists == 'true'
+        run: |
+          cd components/${{ matrix.component }}
+          if [ -d "dist" ]; then
+            SIZE=$(find dist -name "*.wasm" -exec du -b {} \; | cut -f1 | head -1)
+            echo "Bundle size: $SIZE bytes"
+            echo "bundle_size=$SIZE" >> $GITHUB_ENV
+            
+            # Check if size exceeds 50KB (51200 bytes)
+            if [ "$SIZE" -gt 51200 ]; then
+              echo "::warning::Bundle size ($SIZE bytes) exceeds 50KB limit for ${{ matrix.component }}"
+            fi
+          fi
+      
+      - name: Upload bundle size artifact
+        if: steps.check_component.outputs.exists == 'true' && env.bundle_size != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-size-${{ matrix.component }}
+          path: |
+            components/${{ matrix.component }}/dist/*.wasm
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: llvm-tools-preview
+      
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      
+      - name: Install wasm32 target
+        run: rustup target add wasm32-unknown-unknown
+      
+      - name: Generate code coverage
+        run: |
+          cd components
+          cargo llvm-cov --workspace --lcov --output-path lcov.info
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./components/lcov.info
+          flags: components
+          fail_ci_if_error: false
+
+  lint-all:
+    name: Lint All Components
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt, clippy
+      
+      - name: Check workspace formatting
+        run: |
+          cd components
+          cargo fmt --all -- --check
+      
+      - name: Run workspace clippy
+        run: |
+          cd components
+          cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+  bundle-size-report:
+    name: Bundle Size Report
+    runs-on: ubuntu-latest
+    needs: test-matrix
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all bundle sizes
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bundle-size-*
+          path: bundle-sizes
+      
+      - name: Generate size report
+        run: |
+          echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Size (bytes) | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------------|---------|" >> $GITHUB_STEP_SUMMARY
+          
+          for dir in bundle-sizes/*/; do
+            if [ -d "$dir" ]; then
+              component=$(basename "$dir" | sed 's/bundle-size-//')
+              wasm_file=$(find "$dir" -name "*.wasm" | head -1)
+              if [ -f "$wasm_file" ]; then
+                size=$(du -b "$wasm_file" | cut -f1)
+                if [ "$size" -gt 51200 ]; then
+                  status="⚠️ Exceeds 50KB"
+                else
+                  status="✅ OK"
+                fi
+                echo "| $component | $size | $status |" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Target: Each component < 50KB, Total < 200KB" >> $GITHUB_STEP_SUMMARY

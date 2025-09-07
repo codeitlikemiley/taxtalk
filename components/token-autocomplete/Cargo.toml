@@ -1,0 +1,31 @@
+[package]
+name = "token-autocomplete"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "token-autocomplete-demo"
+path = "src/main.rs"
+
+[dependencies]
+leptos.workspace = true
+leptos_meta.workspace = true
+leptos_router.workspace = true
+console_error_panic_hook.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = ["ScrollIntoViewOptions", "ScrollBehavior", "ScrollLogicalPosition", "Element"] }
+serde.workspace = true
+serde_json.workspace = true
+gloo-timers.workspace = true
+
+# Internal dependencies
+taxtalk-ui-core.workspace = true
+
+[dev-dependencies]
+wasm-bindgen-test.workspace = true
+pretty_assertions.workspace = true

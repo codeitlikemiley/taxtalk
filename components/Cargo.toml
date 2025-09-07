@@ -1,13 +1,47 @@
 [workspace]
 resolver = "2"
 members = [
+    # Core infrastructure
     "core",
     "taxtalk-ui",
+    
+    # Token Resolution Components (Priority 1)
+    "entity-tag",
+    "token-autocomplete",
+    # "entity-combobox",         # TODO: Extract from web
+    # "smart-command-input",     # TODO: Extract from web
+    # "tagged-input",            # TODO: Extract from web
+    
+    # Form & Input Components (Priority 2)
+    # "simple-form",             # TODO: Extract from web
+    # "mixed-input",             # TODO: Extract from web
+    # "dual-mode-input",         # TODO: Extract from web
+    # "command-entity-input",    # TODO: Extract from web
+    # "multi-select-combobox",   # TODO: Extract from web
+    
+    # Smart UI Components (Priority 3)
+    # "smart-suggestions",       # TODO: Extract from web
+    # "quick-actions",           # TODO: Extract from web
+    # "command-palette",         # TODO: Extract from web
+    # "inline-confirmation",     # TODO: Extract from web
+    
+    # Chat Components (Priority 4)
+    # "chat",                    # TODO: Extract from web
+    # "guided-chat",             # TODO: Extract from web
+    
+    # Utility Components (Already extracted)
     "file-upload",
     "dynamic-table",
     "conditional-form",
+    
+    # Supporting Components
+    # "autocomplete-simple",     # TODO: Extract from web
+    # "counter-btn",             # TODO: Extract from web
+    # "plugins",                 # TODO: Extract from web
+    
+    # Demo & testing
     "showcase"
-]
+, "entity-combobox", "simple-form", "command-entity-input", "mixed-input", "dual-mode-input", "multi-select-combobox"]
 
 [workspace.package]
 version = "0.1.0"
@@ -16,17 +50,48 @@ edition = "2021"
 license = "MIT"
 
 [workspace.dependencies]
+# Leptos framework - NOTE: Keeping 0.7.0 for compatibility with existing code
+# Latest stable is 0.8.8 but requires migration
 leptos = { version = "0.7.0", features = ["csr", "nightly"] }
-leptos_meta = "0.7.0"
-leptos_router = "0.7.0"
-console_error_panic_hook = "0.1"
-wasm-bindgen = "0.2"
-web-sys = "0.3"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-uuid = { version = "1.10", features = ["v4", "js"] }
-gloo = "0.11"
-gloo-timers = { version = "0.3", features = ["futures"] }
+leptos_meta = "0.7.0"  # Latest: 0.8.5
+leptos_router = "0.7.0"  # Latest: 0.8.6
+
+# WASM essentials
+console_error_panic_hook = "0.1.7"
+wasm-bindgen = "0.2.101"
+web-sys = { version = "0.3.78", features = [
+    "HtmlInputElement", 
+    "HtmlTextAreaElement", 
+    "File", 
+    "FileList", 
+    "DragEvent", 
+    "DataTransfer", 
+    "Event",
+    "KeyboardEvent",
+    "FocusEvent",
+    "Element",
+    "Window",
+    "Document",
+    "HtmlElement",
+    "DomRect",
+    "Selection",
+    "Range"
+] }
+
+# Serialization
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.143"
+
+# Utilities
+uuid = { version = "1.18.1", features = ["v4", "js", "serde"] }
+gloo = "0.11.0"
+gloo-timers = { version = "0.3.0", features = ["futures"] }
+chrono = { version = "0.4.41", features = ["serde"] }
+
+# Testing dependencies
+wasm-bindgen-test = "0.3.51"
+pretty_assertions = "1.4.1"
+criterion = { version = "0.7.0", features = ["html_reports"] }
 
 # Internal dependencies
 [workspace.dependencies.taxtalk-ui-core]

@@ -1,0 +1,350 @@
+/* TokenAutocomplete Component Styles */
+
+/* Container styles */
+.tui-ta-container {
+    position: relative;
+    width: 100%;
+}
+
+.tui-ta-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+}
+
+.tui-ta-wrapper > * {
+    pointer-events: auto;
+}
+
+/* Dropdown styles */
+.tui-ta-dropdown {
+    position: absolute;
+    top: 100%;
+    margin-top: 0.5rem;
+    left: 0;
+    width: 24rem;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    z-index: 50;
+}
+
+/* Header */
+.tui-ta-header {
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(to right, #eff6ff, #e0e7ff);
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Filter input */
+.tui-ta-filter {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fafbfc;
+}
+
+.tui-ta-filter-input {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background: white;
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+.tui-ta-filter-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.tui-ta-filter-input::placeholder {
+    color: #9ca3af;
+}
+
+.tui-ta-title {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #374151;
+    margin: 0;
+}
+
+.tui-ta-shortcuts {
+    font-size: 0.625rem;
+    color: #6b7280;
+    margin: 0.25rem 0 0 0;
+}
+
+/* List container */
+.tui-ta-list {
+    max-height: 16rem;
+    overflow-y: auto;
+}
+
+/* Item styles */
+.tui-ta-item {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    background: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    transition: background-color 0.15s ease;
+    position: relative;
+}
+
+.tui-ta-item:hover {
+    background-color: #f9fafb;
+}
+
+.tui-ta-item-selected {
+    background-color: #eff6ff !important;
+}
+
+/* Selected marker */
+.tui-ta-selected-marker {
+    position: absolute;
+    left: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #3b82f6;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* Indicator dot */
+.tui-ta-indicator {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+.tui-ta-indicator-blue { background-color: #3b82f6; }
+.tui-ta-indicator-green { background-color: #10b981; }
+.tui-ta-indicator-purple { background-color: #8b5cf6; }
+.tui-ta-indicator-gray { background-color: #6b7280; }
+
+/* Content area */
+.tui-ta-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Token line */
+.tui-ta-token-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.125rem;
+}
+
+.tui-ta-token {
+    font-size: 0.875rem;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    color: #2563eb;
+    font-weight: 500;
+}
+
+/* Category badge */
+.tui-ta-category {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.tui-ta-category-blue {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.tui-ta-category-green {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.tui-ta-category-purple {
+    background-color: #ede9fe;
+    color: #5b21b6;
+}
+
+.tui-ta-category-gray {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+/* Description */
+.tui-ta-description {
+    font-size: 0.75rem;
+    color: #4b5563;
+    margin: 0.125rem 0;
+}
+
+/* Example */
+.tui-ta-example {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    margin: 0.125rem 0;
+}
+
+/* Demo styles */
+.demo-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.demo-container h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #111827;
+}
+
+.subtitle {
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+.demo-section {
+    margin-bottom: 2rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.demo-section h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #374151;
+}
+
+.command-input {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.command-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.command-preview {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 0.375rem;
+}
+
+.command-preview code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    color: #111827;
+}
+
+.token-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.selected-token {
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-left: 3px solid;
+    border-radius: 0.375rem;
+}
+
+.token-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.token-header code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    color: #2563eb;
+    font-weight: 500;
+}
+
+.token-category {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    background: #e5e7eb;
+    color: #374151;
+    border-radius: 0.25rem;
+}
+
+.token-desc {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.event-log {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.875rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.log-entry {
+    padding: 0.125rem 0;
+}
+
+.empty-state {
+    color: #6b7280;
+    font-style: italic;
+}
+
+.examples {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.example {
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 0.375rem;
+}
+
+.example strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #374151;
+}
+
+.example code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    color: #2563eb;
+    font-size: 0.875rem;
+}

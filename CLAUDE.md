@@ -212,3 +212,6 @@ generate VAT return for October 2024
 - make sure to enforce @TAX_GPT.md as that is the core of our product
 - all markdown on .kilocode/rules are to be followed
 - make sure to reference @ACCOUNTING.md as a knowledge base on bir compliance
+- when adding new dependencies make sure to run this to check for the latest stable version of the crate -> ```shell
+curl -s https://crates.io/api/v1/crates/sha2/versions | grep -o '"num":"[^"]*"' | grep -E '^"num":"[0-9]+\.[0-9]+\.[0-9]+"' | head -1 | cut -d'"' -f4
+```

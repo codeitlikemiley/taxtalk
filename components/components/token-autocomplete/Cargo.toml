@@ -1,0 +1,25 @@
+[package]
+name = "taxtalk-token-autocomplete"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+leptos = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+console_error_panic_hook = { workspace = true }
+wasm-bindgen = { workspace = true }
+web-sys = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+taxtalk-ui-core = { workspace = true }
+
+[dev-dependencies]
+wasm-bindgen-test = { workspace = true }
+pretty_assertions = { workspace = true }
+
+[[bin]]
+name = "taxtalk-token-autocomplete"
+path = "src/main.rs"
