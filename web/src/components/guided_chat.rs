@@ -734,41 +734,51 @@ pub fn GuidedChat() -> impl IntoView {
     view! {
         <div class="flex flex-col h-full relative">
             // Session Progress Bar
-            {move || if let Some(session) = active_session.get() {
-                view! {
-                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-blue-200 px-6 py-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                                    {session.progress} "/" {session.total_required}
+            {move || {
+                if let Some(session) = active_session.get() {
+                    view! {
+                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-blue-200 px-6 py-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                        {session.progress} "/" {session.total_required}
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-700">
+                                            "Creating: " {session.command}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            "Step " {session.progress + 1} " of "
+                                            {session.total_required}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="text-sm font-medium text-gray-700">"Creating: " {session.command}</div>
-                                    <div class="text-xs text-gray-500">"Step " {session.progress + 1} " of " {session.total_required}</div>
+                                <button
+                                    class="px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                                    on:click=cancel_session
+                                >
+                                    "Cancel"
+                                </button>
+                            </div>
+                            <div class="mt-2">
+                                <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div
+                                        class="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
+                                        style=format!(
+                                            "width: {}%",
+                                            session.progress as f32 / session.total_required as f32
+                                                * 100.0,
+                                        )
+                                    ></div>
                                 </div>
                             </div>
-                            <button
-                                class="px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                                on:click=cancel_session
-                            >
-                                "Cancel"
-                            </button>
                         </div>
-                        <div class="mt-2">
-                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div 
-                                    class="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
-                                    style={format!("width: {}%", session.progress as f32 / session.total_required as f32 * 100.0)}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
-                }.into_any()
-            } else {
-                view! { <div></div> }.into_any()
-            }}
-            
-            // Header
+                    }
+                        .into_any()
+                } else {
+                    view! { <div></div> }.into_any()
+                }
+            }} // Header
             <div class="bg-white border-b border-gray-200 px-6 py-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
@@ -779,42 +789,76 @@ pub fn GuidedChat() -> impl IntoView {
                         <span class="text-sm text-gray-500">"AI-Powered Token Validation"</span>
                     </div>
                 </div>
-            </div>
-            
             // Messages area
+            </div>
             <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4 bg-gradient-to-b from-gray-50 to-white">
                 <For
                     each=move || messages.get()
                     key=|msg| msg.id.clone()
                     children=move |msg| {
                         view! {
-                            <div class={if msg.is_user { "flex justify-end" } else { "flex justify-start" }}>
-                                <div class={if msg.is_user { "max-w-2xl" } else { "max-w-3xl" }}>
-                                    <div class={if msg.is_user { 
-                                        "bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl rounded-br-sm px-5 py-3 shadow-lg" 
-                                    } else { 
-                                        "bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-5 py-3 shadow-md" 
-                                    }}>
-                                        <div class="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</div>
+                            <div class=if msg.is_user {
+                                "flex justify-end"
+                            } else {
+                                "flex justify-start"
+                            }>
+                                <div class=if msg.is_user { "max-w-2xl" } else { "max-w-3xl" }>
+                                    <div class=if msg.is_user {
+                                        "bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl rounded-br-sm px-5 py-3 shadow-lg"
+                                    } else {
+                                        "bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-5 py-3 shadow-md"
+                                    }>
+                                        <div class="whitespace-pre-wrap text-sm leading-relaxed">
+                                            {msg.content}
+                                        </div>
                                     </div>
                                     <div class="flex items-center space-x-2 mt-1 px-2">
                                         <span class="text-xs text-gray-400">{msg.timestamp}</span>
                                         {move || match msg.status {
-                                            MessageStatus::Sent => view! {
-                                                <svg class="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                                </svg>
-                                            }.into_any(),
-                                            MessageStatus::Delivered => view! {
-                                                <svg class="w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                            }.into_any(),
-                                            MessageStatus::Error => view! {
-                                                <svg class="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                                </svg>
-                                            }.into_any(),
+                                            MessageStatus::Sent => {
+                                                view! {
+                                                    <svg
+                                                        class="w-3 h-3 text-gray-400"
+                                                        fill="currentColor"
+                                                        viewBox="0 0 20 20"
+                                                    >
+                                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                    </svg>
+                                                }
+                                                    .into_any()
+                                            }
+                                            MessageStatus::Delivered => {
+                                                view! {
+                                                    <svg
+                                                        class="w-3 h-3 text-blue-500"
+                                                        fill="currentColor"
+                                                        viewBox="0 0 20 20"
+                                                    >
+                                                        <path
+                                                            fill-rule="evenodd"
+                                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                            clip-rule="evenodd"
+                                                        />
+                                                    </svg>
+                                                }
+                                                    .into_any()
+                                            }
+                                            MessageStatus::Error => {
+                                                view! {
+                                                    <svg
+                                                        class="w-3 h-3 text-red-500"
+                                                        fill="currentColor"
+                                                        viewBox="0 0 20 20"
+                                                    >
+                                                        <path
+                                                            fill-rule="evenodd"
+                                                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                                            clip-rule="evenodd"
+                                                        />
+                                                    </svg>
+                                                }
+                                                    .into_any()
+                                            }
                                         }}
                                     </div>
                                 </div>
@@ -822,95 +866,109 @@ pub fn GuidedChat() -> impl IntoView {
                         }
                     }
                 />
-                
-                {move || if is_loading.get() {
-                    view! {
-                        <div class="flex justify-start">
-                            <div class="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-5 py-3 shadow-md">
-                                <div class="flex space-x-2">
-                                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+
+                {move || {
+                    if is_loading.get() {
+                        view! {
+                            <div class="flex justify-start">
+                                <div class="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-5 py-3 shadow-md">
+                                    <div class="flex space-x-2">
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                                        <div
+                                            class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                                            style="animation-delay: 0.1s"
+                                        ></div>
+                                        <div
+                                            class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                                            style="animation-delay: 0.2s"
+                                        ></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    }.into_any()
-                } else {
-                    view! { <div></div> }.into_any()
+                        }
+                            .into_any()
+                    } else {
+                        view! { <div></div> }.into_any()
+                    }
                 }}
-            </div>
-            
             // Input area
+            </div>
             <div class="bg-white border-t border-gray-200 px-6 py-4">
-                
+
                 // Quick action buttons for session
-                {move || if let Some(session) = active_session.get() {
-                    if let Some(token) = &session.current_token {
-                        if let Some(prompt) = &session.current_prompt {
-                            // Get token type from missing tokens  
-                            let token_type = "String".to_string(); // Simplified for now
-                            
-                            // Create signals for QuickActionBar
-                            let (quick_action_value, set_quick_action_value) = signal(None::<String>);
-                            let (_quick_custom, set_quick_custom) = signal(false);
-                            
-                            // Watch for changes from QuickActionBar
-                            Effect::new(move |_| {
-                                if let Some(v) = quick_action_value.get() {
-                                    set_input_value.set(v);
+                {move || {
+                    if let Some(session) = active_session.get() {
+                        if let Some(token) = &session.current_token {
+                            if let Some(prompt) = &session.current_prompt {
+                                let token_type = "String".to_string();
+                                let (quick_action_value, set_quick_action_value) = signal(
+                                    None::<String>,
+                                );
+                                let (_quick_custom, set_quick_custom) = signal(false);
+                                Effect::new(move |_| {
+                                    if let Some(v) = quick_action_value.get() {
+                                        set_input_value.set(v);
+                                    }
+                                });
+                                // Get token type from missing tokens
+                                // Simplified for now
+
+                                // Create signals for QuickActionBar
+
+                                // Watch for changes from QuickActionBar
+
+                                view! {
+                                    <QuickActionBar
+                                        token=token.clone()
+                                        token_type=token_type
+                                        prompt=prompt.clone()
+                                        on_action=set_quick_action_value
+                                        on_custom=set_quick_custom
+                                    />
                                 }
-                            });
-                            
-                            view! {
-                                <QuickActionBar
-                                    token=token.clone()
-                                    token_type=token_type
-                                    prompt=prompt.clone()
-                                    on_action=set_quick_action_value
-                                    on_custom=set_quick_custom
-                                />
-                            }.into_any()
+                                    .into_any()
+                            } else {
+                                view! { <div></div> }.into_any()
+                            }
                         } else {
                             view! { <div></div> }.into_any()
                         }
                     } else {
                         view! { <div></div> }.into_any()
                     }
-                } else {
-                    view! { <div></div> }.into_any()
-                }}
-                
-                <div class="flex items-end space-x-3">
+                }} <div class="flex items-end space-x-3">
                     <div class="flex-1 relative">
                         // Entity tags display
-                        {move || if !entity_tokens.get().is_empty() {
-                            view! {
-                                <div class="flex flex-wrap gap-2 mb-2">
-                                    <For
-                                        each=move || entity_tokens.get()
-                                        key=|token| token.id.clone()
-                                        children=move |token| {
-                                            view! {
-                                                <EntityTag
-                                                    token=token
-                                                    on_remove=set_removed_token_id
-                                                />
+                        {move || {
+                            if !entity_tokens.get().is_empty() {
+                                view! {
+                                    <div class="flex flex-wrap gap-2 mb-2">
+                                        <For
+                                            each=move || entity_tokens.get()
+                                            key=|token| token.id.clone()
+                                            children=move |token| {
+                                                view! {
+                                                    <EntityTag token=token on_remove=set_removed_token_id />
+                                                }
                                             }
-                                        }
-                                    />
-                                </div>
-                            }.into_any()
-                        } else {
-                            view! { <div></div> }.into_any()
+                                        />
+                                    </div>
+                                }
+                                    .into_any()
+                            } else {
+                                view! { <div></div> }.into_any()
+                            }
                         }}
                         <textarea
                             node_ref=input_ref
                             class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                            placeholder={move || if active_session.get().is_some() {
-                                "Enter your answer..."
-                            } else {
-                                "Type your command here... Use @ to mention entities"
-                            }}
+                            placeholder=move || {
+                                if active_session.get().is_some() {
+                                    "Enter your answer..."
+                                } else {
+                                    "Type your command here... Use @ to mention entities"
+                                }
+                            }
                             rows="1"
                             prop:value=move || input_value.get()
                             on:input=handle_input
@@ -924,26 +982,31 @@ pub fn GuidedChat() -> impl IntoView {
                         disabled=move || is_loading.get()
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                            ></path>
                         </svg>
                     </button>
-                </div>
-                <div class="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+                </div> <div class="mt-2 flex items-center space-x-4 text-xs text-gray-500">
                     <span>"Press Enter to send"</span>
                     <span>"•"</span>
                     <span>"Ctrl+K for commands"</span>
                     <span>"•"</span>
                     <span>"@ for tokens"</span>
                     <span>"•"</span>
-                    {move || if active_session.get().is_some() {
-                        view! { <span>"Session active"</span> }.into_any()
-                    } else {
-                        view! { <span>"Type naturally"</span> }.into_any()
+                    {move || {
+                        if active_session.get().is_some() {
+                            view! { <span>"Session active"</span> }.into_any()
+                        } else {
+                            view! { <span>"Type naturally"</span> }.into_any()
+                        }
                     }}
                 </div>
-            </div>
-            
             // Form Modal for complex tokens
+            </div>
             {move || {
                 if let Some(token) = current_form_token.get() {
                     view! {
@@ -956,20 +1019,17 @@ pub fn GuidedChat() -> impl IntoView {
                             on_submit=set_form_submit_value
                             on_cancel=set_show_form
                         />
-                    }.into_any()
+                    }
+                        .into_any()
                 } else {
                     view! { <div></div> }.into_any()
                 }
-            }}
-            
-            // Invoice Items Form
+            }} // Invoice Items Form
             <ItemsForm
                 show=show_items_form.into()
                 on_submit=set_items_submit_value
                 on_cancel=set_show_items_form
-            />
-            
-            // Entity Combobox for guided session (single or multi based on cardinality)
+            /> // Entity Combobox for guided session (single or multi based on cardinality)
             {move || {
                 if show_entity_combobox.get() && !entity_combobox_type.get().is_empty() {
                     let cardinality = entity_combobox_cardinality.get();
@@ -983,7 +1043,8 @@ pub fn GuidedChat() -> impl IntoView {
                                 on_confirm=set_multi_entity_selected
                                 on_cancel=set_entity_combobox_cancelled
                             />
-                        }.into_any()
+                        }
+                            .into_any()
                     } else {
                         view! {
                             <EntityCombobox
@@ -993,14 +1054,13 @@ pub fn GuidedChat() -> impl IntoView {
                                 on_select=set_entity_selected
                                 on_cancel=set_entity_combobox_cancelled
                             />
-                        }.into_any()
+                        }
+                            .into_any()
                     }
                 } else {
                     view! { <div></div> }.into_any()
                 }
-            }}
-            
-            // Autocomplete Popup
+            }} // Autocomplete Popup
             <AutocompletePopup
                 show=show_autocomplete.into()
                 query=autocomplete_query.into()
@@ -1010,36 +1070,39 @@ pub fn GuidedChat() -> impl IntoView {
                 on_cancel=set_show_autocomplete
                 command_context=input_value.into()
                 cursor_pos=cursor_position.into()
-                filled_tokens={Signal::derive(move || {
-                    entity_tokens.get().iter().map(|t| FilledToken {
-                        token_type: t.entity_type.clone(),
-                        entity_id: t.id.clone(),
-                        entity_type: t.entity_type.clone(),
-                    }).collect::<Vec<_>>()
-                })}
-            />
-            
-            // Command Palette (Ctrl+K)
+                filled_tokens=Signal::derive(move || {
+                    entity_tokens
+                        .get()
+                        .iter()
+                        .map(|t| FilledToken {
+                            token_type: t.entity_type.clone(),
+                            entity_id: t.id.clone(),
+                            entity_type: t.entity_type.clone(),
+                        })
+                        .collect::<Vec<_>>()
+                })
+            /> // Command Palette (Ctrl+K)
             <CommandPalette
                 show=show_command_palette.into()
                 on_close=set_show_command_palette
                 on_execute=set_on_palette_execute
-            />
-            
-            // Inline Confirmation for parsed commands
-            {move || if show_inline_confirmation.get() && !parsed_fields.get().is_empty() {
-                view! {
-                    <InlineConfirmation
-                        title="Confirm Command".to_string()
-                        fields=parsed_fields.get()
-                        message=Some("Review and confirm the parsed command".to_string())
-                        on_confirm=set_on_confirmation_confirm
-                        on_edit=set_on_confirmation_edit
-                        on_cancel=set_on_confirmation_cancel
-                    />
-                }.into_any()
-            } else {
-                view! { <div></div> }.into_any()
+            /> // Inline Confirmation for parsed commands
+            {move || {
+                if show_inline_confirmation.get() && !parsed_fields.get().is_empty() {
+                    view! {
+                        <InlineConfirmation
+                            title="Confirm Command".to_string()
+                            fields=parsed_fields.get()
+                            message=Some("Review and confirm the parsed command".to_string())
+                            on_confirm=set_on_confirmation_confirm
+                            on_edit=set_on_confirmation_edit
+                            on_cancel=set_on_confirmation_cancel
+                        />
+                    }
+                        .into_any()
+                } else {
+                    view! { <div></div> }.into_any()
+                }
             }}
         </div>
     }

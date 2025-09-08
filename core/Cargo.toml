@@ -20,11 +20,13 @@ tokio = { workspace = true, features = ["full"] }
 url.workspace = true
 uuid.workspace = true
 wasmtime = { workspace = true, features = ["component-model"] }
+wasmtime-wasi = { workspace = true }
 log = { workspace = true, optional = true }
 pretty_env_logger = { workspace = true, optional = true }
 tempfile = "3.8"
 sqlx = { workspace = true }
 fuzzy-matcher = "0.3"
+parking_lot = "0.12"
 
 [dev-dependencies]
 insta.workspace = true

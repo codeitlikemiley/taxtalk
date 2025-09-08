@@ -1,0 +1,10 @@
+// This file defines the world for the invoice plugin
+// It imports capabilities and exports the plugin interface
+
+package taxtalk:plugin@0.1.0;
+
+world invoice-plugin {
+    import store;
+    import http;
+    export plugin;
+}

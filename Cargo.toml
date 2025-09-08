@@ -40,6 +40,7 @@ tracing = "0.1"
 url = "2.5"
 wasm-bindgen = "0.2"
 wasmtime = "27.0"
+wasmtime-wasi = "27.0"
 wit-bindgen = "0.45.0"
 
 [workspace.dependencies.chrono]

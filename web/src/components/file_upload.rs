@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{File, DragEvent, HtmlInputElement, DataTransfer, FileList};
+use web_sys::{DragEvent, HtmlInputElement, DataTransfer, FileList};
 use uuid::Uuid;
 use std::collections::HashMap;
 

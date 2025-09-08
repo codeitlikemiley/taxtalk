@@ -1,0 +1,8 @@
+// World definition for company plugin
+package taxtalk:plugin@0.1.0;
+
+world company-plugin {
+    import store;
+    import http;
+    export plugin;
+}

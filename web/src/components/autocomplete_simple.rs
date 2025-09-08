@@ -1,6 +1,5 @@
 use leptos::prelude::*;
 use leptos::task::spawn_local;
-use leptos::wasm_bindgen::JsCast;
 use serde::{Deserialize, Serialize};
 use crate::config::api_url;
 

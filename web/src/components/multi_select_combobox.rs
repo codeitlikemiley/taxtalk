@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use leptos::task::spawn_local;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use crate::components::autocomplete_simple::Entity;
 use crate::config::api_url;
 use std::collections::HashSet;

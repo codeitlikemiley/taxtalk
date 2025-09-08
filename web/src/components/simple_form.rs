@@ -7,12 +7,13 @@ use serde_json::json;
 pub fn SimpleForm(
     show: Signal<bool>,
     title: String,
-    token_name: String,
-    token_type: String,
+    #[prop(default = String::new())] token_name: String,
+    #[prop(default = String::new())] token_type: String,
     prompt: String,
     on_submit: WriteSignal<Option<String>>,
     on_cancel: WriteSignal<bool>,
 ) -> impl IntoView {
+    let _ = token_name; // Mark as used to avoid warnings
     let (value, set_value) = signal(String::new());
     
     let handle_submit = move |ev: ev::SubmitEvent| {
@@ -38,13 +39,23 @@ pub fn SimpleForm(
                                 class="text-white hover:text-gray-200 transition-colors"
                                 on:click=handle_cancel
                             >
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                <svg
+                                    class="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    ></path>
                                 </svg>
                             </button>
                         </div>
                     </div>
-                    
+
                     // Body
                     <form on:submit=handle_submit>
                         <div class="px-6 py-4">
@@ -53,7 +64,7 @@ pub fn SimpleForm(
                             </label>
                             {render_input(token_type.clone(), value, set_value)}
                         </div>
-                        
+
                         // Footer
                         <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3 rounded-b-2xl">
                             <button
@@ -109,22 +120,26 @@ fn render_input(
             <div class="flex items-center space-x-4">
                 <button
                     type="button"
-                    class={move || if value.get() == "true" {
-                        "px-4 py-2 bg-blue-500 text-white rounded-lg"
-                    } else {
-                        "px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                    }}
+                    class=move || {
+                        if value.get() == "true" {
+                            "px-4 py-2 bg-blue-500 text-white rounded-lg"
+                        } else {
+                            "px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                        }
+                    }
                     on:click=move |_| set_value.set("true".to_string())
                 >
                     "Yes"
                 </button>
                 <button
                     type="button"
-                    class={move || if value.get() == "false" {
-                        "px-4 py-2 bg-blue-500 text-white rounded-lg"
-                    } else {
-                        "px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                    }}
+                    class=move || {
+                        if value.get() == "false" {
+                            "px-4 py-2 bg-blue-500 text-white rounded-lg"
+                        } else {
+                            "px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                        }
+                    }
                     on:click=move |_| set_value.set("false".to_string())
                 >
                     "No"
@@ -194,7 +209,7 @@ pub fn ItemsForm(
                     <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-4">
                         <h2 class="text-xl font-semibold">"Add Invoice Items"</h2>
                     </div>
-                    
+
                     // Body
                     <form on:submit=handle_submit>
                         <div class="px-6 py-4 max-h-[50vh] overflow-y-auto">
@@ -239,7 +254,8 @@ pub fn ItemsForm(
                                                         />
                                                     </div>
                                                     <div class="col-span-2 text-sm font-medium text-gray-700 py-1">
-                                                        "₱" {move || {
+                                                        "₱"
+                                                        {move || {
                                                             let q = qty.get().parse::<f64>().unwrap_or(0.0);
                                                             let p = price.get().parse::<f64>().unwrap_or(0.0);
                                                             format!("{:.2}", q * p)
@@ -250,7 +266,7 @@ pub fn ItemsForm(
                                         }
                                     }
                                 />
-                                
+
                                 <button
                                     type="button"
                                     class="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors text-sm"
@@ -260,7 +276,7 @@ pub fn ItemsForm(
                                 </button>
                             </div>
                         </div>
-                        
+
                         // Footer
                         <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
                             <button

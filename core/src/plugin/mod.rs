@@ -4,6 +4,8 @@ pub mod manifest;
 pub mod router;
 pub mod loader;
 pub mod system;
+pub mod wit_loader;
+pub mod host_bindings;
 
 // Re-export specific items to avoid ambiguous re-exports
 pub use traits::{
