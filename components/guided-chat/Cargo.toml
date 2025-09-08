@@ -1,0 +1,25 @@
+[package]
+name = "guided-chat"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+leptos = { version = "0.8.8", features = ["csr"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+web-sys = { version = "0.3", features = ["KeyboardEvent", "FocusEvent", "Element", "HtmlInputElement", "HtmlTextAreaElement", "ScrollIntoViewOptions", "ScrollBehavior", "ScrollLogicalPosition"] }
+wasm-bindgen = "0.2"
+gloo-timers = { version = "0.3", features = ["futures"] }
+chrono = { version = "0.4", features = ["wasmbind"] }
+
+[dev-dependencies]
+console_error_panic_hook = "0.1"
+
+[[bin]]
+name = "demo"
+path = "src/main.rs"
+
+[lib]
+crate-type = ["cdylib", "rlib"]

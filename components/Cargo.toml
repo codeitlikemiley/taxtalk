@@ -40,8 +40,18 @@ members = [
     # "plugins",                 # TODO: Extract from web
     
     # Demo & testing
-    "showcase"
-, "entity-combobox", "simple-form", "command-entity-input", "mixed-input", "dual-mode-input", "multi-select-combobox", "smart-suggestions", "quick-actions", "command-palette"]
+    "showcase",
+    "entity-combobox", 
+    "simple-form", 
+    "command-entity-input", 
+    "mixed-input", 
+    "dual-mode-input", 
+    "multi-select-combobox", 
+    "smart-suggestions", 
+    "quick-actions", 
+    "command-palette",
+    "inline-confirmation"
+]
 
 [workspace.package]
 version = "0.1.0"

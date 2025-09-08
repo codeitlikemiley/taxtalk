@@ -31,3 +31,4 @@ anyhow = "1.0"
 [dev-dependencies]
 axum-test = "15.7.1"
 tokio = { version = "1.47.1", features = ["test-util"] }
+tempfile = "3.8"

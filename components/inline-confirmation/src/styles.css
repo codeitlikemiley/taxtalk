@@ -1,0 +1,279 @@
+/* Inline Confirmation Component Styles */
+
+.ic-container {
+    position: relative;
+    width: 100%;
+}
+
+.ic-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.ic-required {
+    color: #ef4444;
+    margin-left: 0.25rem;
+}
+
+.ic-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.ic-input {
+    width: 100%;
+    padding: 0.625rem 2.5rem 0.625rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.ic-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.ic-input-valid {
+    border-color: #10b981;
+    background-color: #f0fdf4;
+}
+
+.ic-input-invalid {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.ic-input-warning {
+    border-color: #f59e0b;
+    background-color: #fffbeb;
+}
+
+.ic-input-validating {
+    border-color: #6b7280;
+    background-color: #f9fafb;
+}
+
+.ic-input-disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.ic-icon-wrapper {
+    position: absolute;
+    right: 0.75rem;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+.ic-icon {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ic-spinner {
+    color: #6b7280;
+    animation: spin 1s linear infinite;
+}
+
+.ic-success {
+    color: #10b981;
+}
+
+.ic-error {
+    color: #ef4444;
+}
+
+.ic-warning {
+    color: #f59e0b;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.ic-help-text {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.ic-message {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.ic-message-success {
+    color: #10b981;
+}
+
+.ic-message-error {
+    color: #ef4444;
+}
+
+.ic-message-warning {
+    color: #f59e0b;
+}
+
+/* Shake animation */
+.ic-shake {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Confirmation styles */
+.ic-confirmation {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: #1f2937;
+    color: white;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.ic-confirmation-text {
+    display: block;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.ic-confirmation-timer {
+    height: 3px;
+    background: #3b82f6;
+    border-radius: 1.5px;
+    animation: countdown linear forwards;
+}
+
+@keyframes countdown {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* Password input styles */
+.ic-password-container {
+    position: relative;
+}
+
+.ic-password-input-wrapper {
+    position: relative;
+}
+
+.ic-password-toggle {
+    position: absolute;
+    right: 2.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1.25rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.ic-password-toggle:hover {
+    opacity: 1;
+}
+
+.ic-strength-indicator {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ic-strength-bar {
+    flex: 1;
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.ic-strength-fill {
+    height: 100%;
+    transition: width 0.3s, background-color 0.3s;
+}
+
+.ic-strength-weak {
+    background: #ef4444;
+}
+
+.ic-strength-medium {
+    background: #f59e0b;
+}
+
+.ic-strength-strong {
+    background: #10b981;
+}
+
+.ic-strength-text {
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-width: 60px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .ic-input {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .ic-label {
+        color: #e5e7eb;
+    }
+    
+    .ic-input {
+        background: #1f2937;
+        border-color: #374151;
+        color: #f3f4f6;
+    }
+    
+    .ic-input:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+    }
+    
+    .ic-input-valid {
+        background-color: #064e3b;
+    }
+    
+    .ic-input-invalid {
+        background-color: #7f1d1d;
+    }
+    
+    .ic-input-warning {
+        background-color: #78350f;
+    }
+    
+    .ic-help-text {
+        color: #9ca3af;
+    }
+}
