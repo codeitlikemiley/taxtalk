@@ -2,171 +2,257 @@
 
 ## Overview
 
-This guide provides comprehensive documentation for building components with Leptos, a modern Rust web framework. It covers reactive patterns, component composition, styling, event handling, data flow, performance optimization, server-side rendering, testing, and deployment.
+This comprehensive guide provides AI systems with detailed knowledge of Leptos component development patterns, best practices, and implementation strategies. Designed specifically for AI-assisted development, this guide covers everything from basic reactive patterns to advanced performance optimization techniques.
 
-## Table of Contents
+## Guide Structure
 
-### Core Concepts
-- [01-reactive-fundamentals.md](01-reactive-fundamentals.md) - Signals, state management, reactivity
-- [02-component-basics.md](02-component-basics.md) - Basic component patterns and lifecycle
-- [03-advanced-components.md](03-advanced-components.md) - Complex component patterns and composition
-- [04-styling-patterns.md](04-styling-patterns.md) - CSS, Tailwind, and styling approaches
-- [05-event-handling.md](05-event-handling.md) - User interactions and event management
-- [06-data-flow.md](06-data-flow.md) - Props, context, and data passing patterns
-- [07-performance.md](07-performance.md) - Optimization techniques and best practices
-- [08-ssr-hydration.md](08-ssr-hydration.md) - Server-side rendering and hydration
-- [09-testing.md](09-testing.md) - Component testing strategies
-- [10-deployment.md](10-deployment.md) - Build and deployment patterns
+### 📚 Core Chapters
 
-### Quick Reference
-- [cheatsheets/signals-cheatsheet.md](cheatsheets/signals-cheatsheet.md) - Signal operations reference
-- [cheatsheets/component-patterns.md](cheatsheets/component-patterns.md) - Common component patterns
-- [cheatsheets/styling-cheatsheet.md](cheatsheets/styling-cheatsheet.md) - Styling techniques
-- [cheatsheets/performance-tips.md](cheatsheets/performance-tips.md) - Performance optimization tips
+| Chapter | Topic | Description |
+|---------|-------|-------------|
+| [01: Reactive Fundamentals](01-reactive-fundamentals.md) | Signals, Effects, Memos | Core reactive programming concepts in Leptos |
+| [02: Component Basics](02-component-basics.md) | Basic Components, Props, Children | Fundamental component patterns and composition |
+| [03: Advanced Components](03-advanced-components.md) | Complex Components, Context | Advanced component patterns and state management |
+| [04: Styling Patterns](04-styling-patterns.md) | CSS, Tailwind, Theming | Comprehensive styling approaches and best practices |
+| [05: Event Handling](05-event-handling.md) | User Interactions, Custom Events | Complete event handling patterns and strategies |
+| [06: Data Flow](06-data-flow.md) | Props, Context, Stores | State management and data flow patterns |
+| [07: Performance](07-performance.md) | Optimization, Memoization | Performance optimization techniques and patterns |
+| [08: SSR & Hydration](08-ssr-hydration.md) | Server-Side Rendering | SSR implementation and hydration strategies |
+| [09: Testing](09-testing.md) | Component Testing | Testing patterns and best practices |
+| [10: Deployment](10-deployment.md) | Build & Deploy | Production deployment and build optimization |
 
-### Practical Examples
-- [examples/basic-counter.md](examples/basic-counter.md) - Simple counter component
-- [examples/todo-app.md](examples/todo-app.md) - Todo application with CRUD operations
-- [examples/form-handling.md](examples/form-handling.md) - Form validation and submission
-- [examples/data-fetching.md](examples/data-fetching.md) - API integration and data fetching
+### 📋 Quick Reference
 
-## Getting Started
+| Section | Content | Purpose |
+|---------|---------|---------|
+| [Cheatsheets](./cheatsheets/) | Quick Reference Guides | Fast lookup for common patterns |
+| [Examples](./examples/) | Working Code Examples | Practical implementation samples |
 
-### Prerequisites
-- Rust 1.70+
-- Basic understanding of HTML/CSS/JavaScript
-- Familiarity with reactive programming concepts
+## Quick Reference Guides
 
-### Installation
-```bash
-cargo add leptos
-cargo add leptos_router  # For routing
-cargo add leptos_meta   # For meta tags
-```
+### Component Patterns Cheatsheet
+- [Component Patterns](./cheatsheets/component-patterns.md) - Complete component development patterns
+- [Styling Cheatsheet](./cheatsheets/styling-cheatsheet.md) - CSS, Tailwind, and styling patterns
+- [Performance Tips](./cheatsheets/performance-tips.md) - Optimization techniques and best practices
 
-### Project Setup
-```bash
-cargo new my-leptos-app
-cd my-leptos-app
-cargo add leptos --features=csr  # Client-side rendering
-```
+### Working Examples
+- [Basic Counter](./examples/basic-counter.md) - Simple reactive counter implementation
+- [Form Handling](./examples/form-handling.md) - Complete form patterns and validation
+- [Data Fetching](./examples/data-fetching.md) - HTTP requests and async data patterns
+- [Todo App](./examples/todo-app.md) - Full-featured application example
 
-## Key Concepts
+## Key Concepts Overview
 
-### Reactive System
-Leptos uses a fine-grained reactive system based on signals and effects:
-- **Signals**: Reactive values that notify dependents when changed
-- **Effects**: Functions that run when their dependencies change
-- **Memos**: Computed values that cache expensive calculations
+### Reactive Programming
+Leptos is built on fine-grained reactive programming. Understanding signals, effects, and memos is crucial for effective component development.
 
-### Component Model
-Components are functions that return `View`:
+**Core Concepts:**
+- **Signals**: Reactive values that automatically update dependent computations
+- **Effects**: Side effects that run when reactive dependencies change
+- **Memos**: Cached computed values for performance optimization
+
+### Component Architecture
+Components in Leptos follow a clear pattern with props, children, and reactive state management.
+
+**Key Patterns:**
+- **Props**: Data passed from parent to child components
+- **Children**: Child components or elements
+- **Context**: Global state management across component tree
+- **Events**: User interaction handling
+
+### State Management
+Leptos provides multiple state management strategies depending on scope and complexity.
+
+**State Patterns:**
+- **Local State**: Component-level state with signals
+- **Shared State**: Context-based state sharing
+- **Global State**: Application-wide state management
+- **Server State**: Async data fetching and caching
+
+## Development Workflow
+
+### 1. Component Design
 ```rust
+// Start with component interface
 #[component]
-pub fn MyComponent() -> impl IntoView {
-    view! { <div>"Hello World"</div> }
+pub fn MyComponent(
+    #[prop(into)] title: String,
+    #[prop(default = false)] disabled: bool,
+    children: Children,
+) -> impl IntoView {
+    // Implementation
 }
 ```
 
-### State Management
-Leptos provides multiple ways to manage state:
-- Local component state with `create_signal`
-- Global state with context
-- Server state with resources
-- Form state with action helpers
+### 2. State Management
+```rust
+// Define reactive state
+let (count, set_count) = create_signal(0);
+let (data, set_data) = create_signal(None::<Vec<Item>>);
+```
 
-## Architecture Patterns
+### 3. Event Handling
+```rust
+// Handle user interactions
+let on_click = move |_| {
+    set_count.update(|n| *n + 1);
+};
+```
 
-### Component Composition
-- **Presentational Components**: Focus on UI rendering
-- **Container Components**: Handle data and logic
-- **Layout Components**: Provide structure
-- **Provider Components**: Supply context
+### 4. Effects and Side Effects
+```rust
+// React to state changes
+create_effect(move |_| {
+    log::info!("Count changed to: {}", count.get());
+});
+```
 
-### Data Flow
-- **Props Down**: Pass data from parent to child
-- **Events Up**: Emit events from child to parent
-- **Context**: Share data across component tree
-- **Signals**: Reactive data sharing
-
-### Performance Patterns
-- **Memoization**: Cache expensive computations
-- **Suspense**: Handle async operations gracefully
-- **Virtual Scrolling**: Render large lists efficiently
-- **Code Splitting**: Load components on demand
+### 5. Rendering
+```rust
+// Define component view
+view! {
+    <div class="component">
+        <h2>{title}</h2>
+        <button on:click=on_click disabled=disabled>
+            "Count: " {count}
+        </button>
+        {children()}
+    </div>
+}
+```
 
 ## Best Practices
 
-### Component Design
-- Keep components small and focused
-- Use descriptive prop names
-- Provide sensible defaults
-- Document component APIs
-
-### State Management
-- Prefer local state when possible
-- Use context for app-wide state
-- Avoid prop drilling with context
-- Handle loading and error states
-
 ### Performance
-- Use `create_memo` for expensive calculations
+- Use `create_memo` for expensive computations
+- Memoize callback functions
 - Avoid unnecessary re-renders
-- Use `create_resource` for async data
-- Implement proper cleanup
+- Use `For` component for lists
 
-### Testing
-- Test component behavior, not implementation
-- Use `mount_to_body` for integration tests
+### Code Organization
+- Keep components focused and single-purpose
+- Use meaningful prop names
+- Provide sensible defaults
+- Document complex logic
+
+### Error Handling
+- Handle async errors gracefully
+- Provide user feedback for failures
+- Use proper error boundaries
+- Log errors for debugging
+
+### Accessibility
+- Use semantic HTML elements
+- Provide ARIA labels when needed
+- Ensure keyboard navigation
+- Test with screen readers
+
+## Common Patterns
+
+### Conditional Rendering
+```rust
+view! {
+    <div>
+        {move || if loading.get() {
+            view! { <p>"Loading..."</p> }
+        } else {
+            view! { <p>"Data loaded!"</p> }
+        }}
+    </div>
+}
+```
+
+### List Rendering
+```rust
+view! {
+    <ul>
+        <For
+            each=move || items.get()
+            key=|item| item.id
+            children=move |item| view! {
+                <li>{item.name}</li>
+            }
+        />
+    </ul>
+}
+```
+
+### Form Handling
+```rust
+let (email, set_email) = create_signal(String::new());
+let (errors, set_errors) = create_signal(Vec::<String>::new());
+
+let on_submit = move |ev: web_sys::SubmitEvent| {
+    ev.prevent_default();
+    // Validation logic
+    // Submit form
+};
+```
+
+### Async Data Fetching
+```rust
+let data = create_resource(
+    move || search_query.get(),
+    |query| async move {
+        // Fetch data from API
+        fetch_data(&query).await
+    }
+);
+```
+
+## Advanced Topics
+
+### Server-Side Rendering
+- Configure SSR in your Leptos application
+- Handle hydration properly
+- Optimize for initial page load
+- Manage server/client differences
+
+### Testing Strategies
+- Unit test components in isolation
+- Integration test component interactions
+- Test async operations and effects
 - Mock external dependencies
-- Test user interactions
 
-## Migration Guide
+### Performance Optimization
+- Profile your application
+- Identify performance bottlenecks
+- Implement memoization strategies
+- Optimize bundle size
 
-### From React
-- `useState` → `create_signal`
-- `useEffect` → `create_effect`
-- `useMemo` → `create_memo`
-- JSX → `view!` macro
+### Deployment
+- Build optimization for production
+- Configure your deployment target
+- Set up CI/CD pipelines
+- Monitor application performance
 
-### From Vue
-- `ref` → `create_signal`
-- `computed` → `create_memo`
-- `watch` → `create_effect`
-- Template → `view!` macro
+## Getting Started
 
-### From Svelte
-- `$:` reactive statements → `create_effect`
-- Stores → Context or global signals
-- Template → `view!` macro
+1. **Read the Fundamentals**: Start with [01: Reactive Fundamentals](01-reactive-fundamentals.md)
+2. **Learn Components**: Move to [02: Component Basics](02-component-basics.md)
+3. **Practice Patterns**: Use the [Component Patterns Cheatsheet](./cheatsheets/component-patterns.md)
+4. **Build Examples**: Follow the [Working Examples](./examples/)
+5. **Optimize**: Apply [Performance Tips](./cheatsheets/performance-tips.md)
 
-## Resources
+## AI Development Notes
 
-### Official Documentation
-- [Leptos Book](https://book.leptos.dev)
-- [API Reference](https://docs.rs/leptos/latest/leptos/)
-- [Examples Repository](https://github.com/leptos-rs/leptos/tree/main/examples)
+This guide is specifically designed for AI-assisted development with:
 
-### Community
-- [Discord Community](https://discord.gg/leptos)
-- [GitHub Discussions](https://github.com/leptos-rs/leptos/discussions)
-- [Awesome Leptos](https://github.com/leptos-rs/awesome-leptos)
+- **Clear Code Examples**: Every concept includes working code
+- **Pattern Recognition**: Consistent patterns across examples
+- **Best Practices**: Explicit guidance for common scenarios
+- **Error Prevention**: Common pitfalls and solutions
+- **Performance Guidance**: Optimization strategies and warnings
 
-### Learning Resources
-- [Leptos Tutorial](https://leptos.dev/tutorial)
-- [Video Tutorials](https://www.youtube.com/@LeptosFramework)
-- [Blog Posts](https://leptos.dev/blog)
+Use this guide as your primary reference for Leptos component development. Each chapter builds on the previous ones, so follow the recommended reading order for the best learning experience.
 
 ## Contributing
 
-This guide is maintained by the Leptos community. Contributions are welcome:
+This guide is designed to evolve with Leptos development. If you find errors, missing patterns, or have suggestions for improvement, please contribute to the ongoing development of this comprehensive resource.
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+---
 
-## License
-
-This guide is licensed under the MIT License. See the LICENSE file for details.
+**Next Steps:**
+- [Start with Reactive Fundamentals](01-reactive-fundamentals.md)
+- [Browse Quick Reference Guides](./cheatsheets/)
+- [Explore Working Examples](./examples/)

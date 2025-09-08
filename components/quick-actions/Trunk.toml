@@ -1,0 +1,14 @@
+[build]
+target = "index.html"
+dist = "dist"
+
+[watch]
+ignore = ["dist", "target"]
+
+[serve]
+addresses = ["127.0.0.1"]
+port = 8091
+open = false
+
+[[proxy]]
+backend = "http://localhost:3001/"

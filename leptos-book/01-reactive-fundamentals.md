@@ -2,14 +2,15 @@
 
 ## Overview
 
-Leptos is built on a fine-grained reactive system that automatically tracks dependencies and updates the UI when data changes. This chapter covers the core reactive primitives: signals, effects, and memos.
+Leptos is built on fine-grained reactive programming, where the framework automatically tracks dependencies between reactive values and updates the UI when those values change. Understanding signals, effects, and memos is crucial for effective Leptos development.
 
-## Signals
+## Core Reactive Concepts
 
-Signals are the fundamental reactive primitive in Leptos. They hold values that can change over time and automatically notify dependents when updated.
+### Signals: Reactive Values
 
-### Creating Signals
+Signals are the fundamental building blocks of reactivity in Leptos. They represent values that can change over time and automatically notify dependent computations when they update.
 
+**Basic Signal Creation:**
 ```rust
 use leptos::*;
 
@@ -17,374 +18,313 @@ use leptos::*;
 let (count, set_count) = create_signal(0);
 
 // Read the current value
-let current_count = count();
+let current_value = count.get();
 
 // Update the value
-set_count(5);
+set_count.set(5);
 
 // Update based on current value
 set_count.update(|n| *n + 1);
 ```
 
-### Signal Types
+**Signal Types:**
+- **Read Signal**: `count` - provides read-only access to the value
+- **Write Signal**: `set_count` - provides write-only access to update the value
+- **Combined**: `(count, set_count)` - tuple providing both read and write access
 
-#### Read Signals
-```rust
-let (count, _) = create_signal(0);
-// count is ReadSignal<i32>
-let value = count(); // Read current value
-```
+### Effects: Reactive Side Effects
 
-#### Write Signals
-```rust
-let (_, set_count) = create_signal(0);
-// set_count is WriteSignal<i32>
-set_count(5); // Set new value
-```
+Effects run whenever their reactive dependencies change. They're perfect for side effects like logging, DOM manipulation, or API calls.
 
-#### Combined Signals
-```rust
-let (count, set_count) = create_signal(0);
-// count: ReadSignal<i32>
-// set_count: WriteSignal<i32>
-```
-
-### Signal Updates
-
-#### Direct Assignment
-```rust
-set_count(10);
-```
-
-#### Functional Updates
-```rust
-set_count.update(|n| *n + 1);
-```
-
-#### Conditional Updates
-```rust
-if some_condition {
-    set_count(0);
-}
-```
-
-## Effects
-
-Effects run when their reactive dependencies change. They're used for side effects like logging, DOM manipulation, or API calls.
-
-### Creating Effects
-
+**Basic Effect:**
 ```rust
 use leptos::*;
 
-// Simple effect
+// Effect that runs when count changes
 create_effect(move |_| {
-    logging::log!("Count changed to: {}", count());
-});
-
-// Effect with cleanup
-create_effect(move |_| {
-    let cleanup = setup_some_resource();
-    on_cleanup(cleanup);
+    let current_count = count.get();
+    log::info!("Count changed to: {}", current_count);
 });
 ```
 
-### Effect Dependencies
-
-Effects automatically track which signals they read:
-
+**Effect with Multiple Dependencies:**
 ```rust
-let (count, set_count) = create_signal(0);
 let (name, set_name) = create_signal("Alice".to_string());
+let (age, set_age) = create_signal(25);
 
 create_effect(move |_| {
-    // This effect depends on both count and name
-    logging::log!("{} has count: {}", name(), count());
-});
-
-// Only triggers when count changes
-create_effect(move |_| {
-    logging::log!("Count: {}", count());
-});
-
-// Only triggers when name changes
-create_effect(move |_| {
-    logging::log!("Name: {}", name());
+    let current_name = name.get();
+    let current_age = age.get();
+    log::info!("{} is {} years old", current_name, current_age);
 });
 ```
 
-### Cleanup Functions
+### Memos: Cached Computations
 
-```rust
-create_effect(move |_| {
-    // Setup
-    let interval_id = set_interval(|| {
-        logging::log!("Tick");
-    }, 1000);
+Memos are computed values that cache their result and only recalculate when their dependencies change. They're essential for performance optimization.
 
-    // Cleanup when effect re-runs or component unmounts
-    on_cleanup(move || {
-        clear_interval(interval_id);
-    });
-});
-```
-
-## Memos
-
-Memos are computed values that cache expensive calculations and only re-compute when dependencies change.
-
-### Creating Memos
-
+**Basic Memo:**
 ```rust
 use leptos::*;
 
-// Simple memo
-let doubled = create_memo(move |_| count() * 2);
+// Memo that computes double the count
+let double_count = create_memo(move |_| {
+    let count_val = count.get();
+    count_val * 2
+});
 
-// Memo with complex computation
-let expensive_value = create_memo(move |_| {
-    // Expensive calculation here
-    fibonacci(count())
+// Use the memo in effects or views
+create_effect(move |_| {
+    log::info!("Double count: {}", double_count.get());
 });
 ```
 
-### Memo Usage
-
+**Memo with Complex Computation:**
 ```rust
-#[component]
-pub fn CounterDisplay() -> impl IntoView {
-    let (count, set_count) = create_signal(0);
-    let doubled = create_memo(move |_| count() * 2);
+let (items, set_items) = create_signal(vec![1, 2, 3, 4, 5]);
 
-    view! {
-        <div>
-            <p>"Count: " {count}</p>
-            <p>"Doubled: " {doubled}</p>
-            <button on:click=move |_| set_count.update(|n| *n + 1)>
-                "Increment"
-            </button>
-        </div>
+// Memo that computes expensive operation
+let sum = create_memo(move |_| {
+    let items_val = items.get();
+    items_val.iter().sum::<i32>() // Expensive operation
+});
+
+// Memo that depends on another memo
+let average = create_memo(move |_| {
+    let total = sum.get();
+    let count = items.get().len();
+    if count > 0 {
+        total as f64 / count as f64
+    } else {
+        0.0
     }
-}
+});
 ```
 
 ## Reactive Patterns
 
 ### Derived State
 
+Create new reactive values derived from existing signals:
+
 ```rust
 let (first_name, set_first_name) = create_signal("John".to_string());
 let (last_name, set_last_name) = create_signal("Doe".to_string());
 
-// Derived signal
+// Derived signal for full name
 let full_name = create_memo(move |_| {
-    format!("{} {}", first_name(), last_name())
+    format!("{} {}", first_name.get(), last_name.get())
 });
+
+// Use in component
+view! {
+    <div>
+        <p>"Full Name: " {full_name}</p>
+    </div>
+}
 ```
 
 ### Conditional Reactivity
 
-```rust
-let (is_logged_in, set_is_logged_in) = create_signal(false);
-let (user_data, set_user_data) = create_signal(None::<User>);
+Use signals to control when effects run:
 
-// Only fetch when logged in
+```rust
+let (enabled, set_enabled) = create_signal(true);
+let (count, set_count) = create_signal(0);
+
+// Effect that only runs when enabled
 create_effect(move |_| {
-    if is_logged_in() {
-        // Fetch user data
-        spawn_local(async move {
-            let user = fetch_user().await;
-            set_user_data(Some(user));
-        });
-    } else {
-        set_user_data(None);
+    if enabled.get() {
+        let current_count = count.get();
+        log::info!("Count: {}", current_count);
     }
 });
 ```
 
 ### Reactive Collections
 
-```rust
-let (items, set_items) = create_signal(vec![1, 2, 3]);
-
-// Add item
-let add_item = move |new_item| {
-    set_items.update(|items| items.push(new_item));
-};
-
-// Remove item
-let remove_item = move |index| {
-    set_items.update(|items| {
-        items.remove(index);
-    });
-};
-```
-
-## Advanced Signal Patterns
-
-### Signal Mapping
+Handle reactive arrays and collections:
 
 ```rust
-let (count, set_count) = create_signal(0);
+let (todos, set_todos) = create_signal(vec![
+    Todo { id: 1, text: "Learn Leptos".to_string(), completed: false },
+    Todo { id: 2, text: "Build app".to_string(), completed: false },
+]);
 
-// Create a derived signal that transforms the value
-let count_string = create_memo(move |_| count().to_string());
-
-// Create a signal that filters values
-let even_count = create_memo(move |_| {
-    let c = count();
-    if c % 2 == 0 { Some(c) } else { None }
-});
-```
-
-### Signal Composition
-
-```rust
-// Combine multiple signals
-let combined = create_memo(move |_| {
-    format!("{}: {}", name(), count())
+// Memo for completed todos
+let completed_todos = create_memo(move |_| {
+    todos.get()
+        .into_iter()
+        .filter(|todo| todo.completed)
+        .collect::<Vec<_>>()
 });
 
-// Chain computations
-let processed = create_memo(move |_| {
-    let base = count();
-    let doubled = base * 2;
-    let squared = doubled * doubled;
-    squared
-});
-```
-
-### Batching Updates
-
-```rust
-// Batch multiple updates
-batch(|| {
-    set_count(1);
-    set_name("Alice".to_string());
-    set_active(true);
-});
-```
-
-## Error Handling in Reactive Code
-
-### Handling Errors in Effects
-
-```rust
-create_effect(move |_| {
-    match fetch_data().await {
-        Ok(data) => set_data(data),
-        Err(err) => set_error(err.to_string()),
-    }
-});
-```
-
-### Fallback Values
-
-```rust
-let data = create_resource(|| (), |()| async move {
-    fetch_data().await.unwrap_or_default()
-});
-```
-
-## Performance Considerations
-
-### Minimizing Re-computations
-
-```rust
-// Good: Memo caches the expensive computation
-let expensive = create_memo(move |_| {
-    expensive_calculation(count())
-});
-
-// Avoid: Re-computes on every render
-let expensive = move || expensive_calculation(count());
-```
-
-### Effect Cleanup
-
-```rust
-create_effect(move |_| {
-    let subscription = subscribe_to_updates();
-    on_cleanup(|| {
-        subscription.unsubscribe();
-    });
-});
-```
-
-### Signal Granularity
-
-```rust
-// Good: Separate signals for different concerns
-let (name, set_name) = create_signal("John".to_string());
-let (age, set_age) = create_signal(25);
-
-// Avoid: Single signal with complex object
-let (user, set_user) = create_signal(User {
-    name: "John".to_string(),
-    age: 25,
-});
-```
-
-## Common Patterns
-
-### Loading States
-
-```rust
-let (is_loading, set_is_loading) = create_signal(false);
-let (data, set_data) = create_signal(None);
-
-create_effect(move |_| {
-    if is_loading() {
-        // Show loading spinner
-    } else if let Some(data) = data() {
-        // Show data
+// Memo for completion percentage
+let completion_percentage = create_memo(move |_| {
+    let all = todos.get().len();
+    let completed = completed_todos.get().len();
+    if all > 0 {
+        (completed as f64 / all as f64) * 100.0
     } else {
-        // Show empty state
+        0.0
     }
 });
 ```
 
-### Debounced Input
+## Advanced Reactive Patterns
+
+### Signal Batching
+
+Batch multiple signal updates to avoid unnecessary re-renders:
 
 ```rust
-let (input, set_input) = create_signal("".to_string());
-let debounced_input = create_memo(move |_| {
-    let value = input();
-    // Debounce logic here
-    value
-});
+// Without batching - causes multiple re-renders
+set_count.set(1);
+set_name.set("Alice".to_string());
+set_age.set(30);
 
-create_effect(move |_| {
-    let search_term = debounced_input();
-    // Perform search
+// With batching - single re-render
+batch(|| {
+    set_count.set(1);
+    set_name.set("Alice".to_string());
+    set_age.set(30);
 });
 ```
 
-### Optimistic Updates
+### Selective Updates
+
+Use `update` method for conditional updates:
 
 ```rust
 let (count, set_count) = create_signal(0);
 
-let increment = move |_| {
-    // Optimistic update
-    set_count.update(|n| *n + 1);
-
-    // Send to server
-    spawn_local(async move {
-        match update_server(count()).await {
-            Ok(_) => {}, // Success
-            Err(_) => {
-                // Revert on error
-                set_count.update(|n| *n - 1);
-            }
-        }
-    });
-};
+// Only increment if count is even
+set_count.update(|n| {
+    if *n % 2 == 0 {
+        *n + 1
+    } else {
+        *n
+    }
+});
 ```
 
-## Testing Reactive Code
+### Reactive Cleanup
 
-### Testing Signals
+Clean up resources when signals are no longer needed:
+
+```rust
+let (interval_id, set_interval_id) = create_signal(None);
+
+create_effect(move |_| {
+    let current_count = count.get();
+
+    // Clean up previous interval
+    if let Some(id) = interval_id.get() {
+        // Clean up logic here
+    }
+
+    // Set up new interval
+    let new_id = set_interval(move || {
+        log::info!("Count is: {}", current_count);
+    }, 1000);
+
+    set_interval_id.set(Some(new_id));
+});
+```
+
+## Reactive Gotchas
+
+### Common Mistakes
+
+**1. Reading signals in wrong context:**
+```rust
+// ❌ Wrong - reading signal outside reactive context
+let current_count = count.get();
+create_effect(move |_| {
+    // This will always log the same value
+    log::info!("Count: {}", current_count);
+});
+
+// ✅ Correct - read signal inside effect
+create_effect(move |_| {
+    let current_count = count.get();
+    log::info!("Count: {}", current_count);
+});
+```
+
+**2. Creating effects in loops:**
+```rust
+// ❌ Wrong - creates effect on every render
+let items = vec![1, 2, 3];
+for item in items {
+    create_effect(move |_| {
+        log::info!("Item: {}", item);
+    });
+}
+
+// ✅ Correct - use single effect with iteration
+create_effect(move |_| {
+    for item in &items {
+        log::info!("Item: {}", item);
+    }
+});
+```
+
+**3. Forgetting to move closures:**
+```rust
+// ❌ Wrong - closure doesn't capture variables
+create_effect(|_| {
+    let value = count.get(); // Won't work
+    log::info!("Value: {}", value);
+});
+
+// ✅ Correct - use move closure
+create_effect(move |_| {
+    let value = count.get();
+    log::info!("Value: {}", value);
+});
+```
+
+### Performance Considerations
+
+**1. Memoization Strategy:**
+```rust
+// ✅ Good - memoize expensive computations
+let expensive_result = create_memo(move |_| {
+    let data = large_dataset.get();
+    // Expensive computation
+    data.iter().map(|x| x * 2).sum()
+});
+
+// ❌ Bad - recompute on every access
+fn get_expensive_result() -> i32 {
+    let data = large_dataset.get();
+    data.iter().map(|x| x * 2).sum()
+}
+```
+
+**2. Effect Dependencies:**
+```rust
+// ✅ Good - effect only runs when needed
+create_effect(move |_| {
+    let search_term = search.get();
+    let results = perform_search(&search_term);
+    set_results.set(results);
+});
+
+// ❌ Bad - effect runs on every change
+create_effect(move |_| {
+    let _ = count.get(); // Unnecessary dependency
+    let _ = name.get();  // Unnecessary dependency
+    let search_term = search.get();
+    let results = perform_search(&search_term);
+    set_results.set(results);
+});
+```
+
+## Reactive Testing
+
+### Testing Reactive Code
 
 ```rust
 #[cfg(test)]
@@ -396,13 +336,27 @@ mod tests {
     fn test_signal_updates() {
         let (count, set_count) = create_signal(0);
 
-        assert_eq!(count(), 0);
+        // Test initial value
+        assert_eq!(count.get(), 0);
 
-        set_count(5);
-        assert_eq!(count(), 5);
+        // Test update
+        set_count.set(5);
+        assert_eq!(count.get(), 5);
 
+        // Test update function
         set_count.update(|n| *n + 1);
-        assert_eq!(count(), 6);
+        assert_eq!(count.get(), 6);
+    }
+
+    #[test]
+    fn test_memo_computation() {
+        let (count, set_count) = create_signal(2);
+        let double = create_memo(move |_| count.get() * 2);
+
+        assert_eq!(double.get(), 4);
+
+        set_count.set(5);
+        assert_eq!(double.get(), 10);
     }
 }
 ```
@@ -411,77 +365,128 @@ mod tests {
 
 ```rust
 #[test]
-    fn test_effect_runs() {
-        let (count, set_count) = create_signal(0);
-        let mut effect_ran = false;
+fn test_effect_execution() {
+    let (count, set_count) = create_signal(0);
+    let mut effect_runs = 0;
 
-        create_effect(move |_| {
-            let _ = count(); // Read signal
-            effect_ran = true;
-        });
+    create_effect(move |_| {
+        let _ = count.get(); // Read to create dependency
+        effect_runs += 1;
+    });
 
-        // Trigger effect
-        set_count(1);
+    // Effect should run once initially
+    assert_eq!(effect_runs, 1);
 
-        // In real testing, you'd wait for effect to run
-        assert!(effect_ran);
-    }
+    // Effect should run again when count changes
+    set_count.set(1);
+    assert_eq!(effect_runs, 2);
+}
 ```
 
 ## Best Practices
 
-1. **Keep signals focused**: Each signal should represent one piece of state
-2. **Use memos for expensive computations**: Cache results to avoid re-computation
-3. **Clean up effects**: Always use `on_cleanup` for resources
-4. **Batch updates**: Use `batch()` for multiple related updates
-5. **Handle errors gracefully**: Don't let errors crash your reactive system
-6. **Test reactive logic**: Unit test your signals and effects
+### Signal Organization
 
-## Migration from Other Frameworks
+**1. Group related signals:**
+```rust
+// ✅ Good - related signals together
+struct UserState {
+    name: ReadSignal<String>,
+    email: ReadSignal<String>,
+    age: ReadSignal<i32>,
+}
 
-### From React
-
-```javascript
-// React
-const [count, setCount] = useState(0);
-const doubled = useMemo(() => count * 2, [count]);
-
-// Leptos
-let (count, set_count) = create_signal(0);
-let doubled = create_memo(move |_| count() * 2);
+// ❌ Bad - scattered signals
+let (name, set_name) = create_signal(String::new());
+let (email, set_email) = create_signal(String::new());
+let (age, set_age) = create_signal(0);
 ```
 
-### From Vue
+**2. Use meaningful names:**
+```rust
+// ✅ Good
+let (is_loading, set_is_loading) = create_signal(false);
+let (error_message, set_error_message) = create_signal(None::<String>);
 
-```javascript
-// Vue
-const count = ref(0);
-const doubled = computed(() => count.value * 2);
-
-// Leptos
-let (count, set_count) = create_signal(0);
-let doubled = create_memo(move |_| count() * 2);
+// ❌ Bad
+let (flag, set_flag) = create_signal(false);
+let (msg, set_msg) = create_signal(None::<String>);
 ```
 
-### From Svelte
+### Effect Management
 
-```javascript
-// Svelte
-let count = 0;
-$: doubled = count * 2;
+**1. Clean up effects:**
+```rust
+create_effect(move |_| {
+    let cleanup = setup_event_listener();
 
-// Leptos
-let (count, set_count) = create_signal(0);
-let doubled = create_memo(move |_| count() * 2);
+    on_cleanup(move || {
+        cleanup(); // Clean up when effect re-runs
+    });
+});
+```
+
+**2. Avoid effect chains:**
+```rust
+// ✅ Good - single effect handles multiple dependencies
+create_effect(move |_| {
+    let count = count_signal.get();
+    let name = name_signal.get();
+    update_display(count, &name);
+});
+
+// ❌ Bad - effect triggers another effect
+create_effect(move |_| {
+    let count = count_signal.get();
+    set_display_count.set(count);
+});
+
+create_effect(move |_| {
+    let display_count = display_count_signal.get();
+    let name = name_signal.get();
+    update_display(display_count, &name);
+});
+```
+
+### Performance Optimization
+
+**1. Use memos for expensive computations:**
+```rust
+let expensive_result = create_memo(move |_| {
+    let data = large_dataset.get();
+    // Expensive computation that should be cached
+    process_data(&data)
+});
+```
+
+**2. Debounce rapid updates:**
+```rust
+let (search_term, set_search_term) = create_signal(String::new());
+
+let debounced_search = create_memo(move |_| {
+    let term = search_term.get();
+    // Debounce logic here
+    term
+});
 ```
 
 ## Summary
 
-Leptos' reactive system provides:
-- **Signals**: Reactive values that notify dependents
-- **Effects**: Side effects that run when dependencies change
-- **Memos**: Cached computed values
-- **Automatic dependency tracking**: No manual dependency arrays
-- **Fine-grained reactivity**: Only re-compute what's necessary
+Reactive programming in Leptos revolves around three core concepts:
 
-Mastering these primitives is essential for building efficient, reactive Leptos applications.
+1. **Signals** - Reactive values that notify dependents of changes
+2. **Effects** - Side effects that run when dependencies change
+3. **Memos** - Cached computed values for performance
+
+Key principles:
+- Always read signals inside reactive contexts (effects, memos, components)
+- Use `move` closures to capture variables properly
+- Memoize expensive computations
+- Batch related updates
+- Clean up resources when no longer needed
+
+Understanding these fundamentals is essential for building efficient, maintainable Leptos applications. The reactive system handles most optimization automatically, but following these patterns ensures optimal performance and correct behavior.
+
+---
+
+**Next:** [02: Component Basics](02-component-basics.md) - Learn how to create and compose Leptos components.

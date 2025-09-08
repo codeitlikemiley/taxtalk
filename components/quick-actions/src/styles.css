@@ -1,0 +1,338 @@
+/* Quick Actions Component Styles */
+
+.qa-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Actions Grid */
+.qa-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+/* Individual Action Button */
+.qa-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.qa-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.qa-action:active {
+    transform: translateY(0);
+}
+
+/* Action Colors */
+.qa-action-green {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.qa-action-green:hover {
+    background-color: #a7f3d0;
+}
+
+.qa-action-blue {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.qa-action-blue:hover {
+    background-color: #bfdbfe;
+}
+
+.qa-action-purple {
+    background-color: #e9d5ff;
+    color: #6b21a8;
+}
+
+.qa-action-purple:hover {
+    background-color: #d8b4fe;
+}
+
+.qa-action-orange {
+    background-color: #fed7aa;
+    color: #9a3412;
+}
+
+.qa-action-orange:hover {
+    background-color: #fdba74;
+}
+
+.qa-action-red {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.qa-action-red:hover {
+    background-color: #fecaca;
+}
+
+.qa-action-yellow {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.qa-action-yellow:hover {
+    background-color: #fde68a;
+}
+
+.qa-action-indigo {
+    background-color: #e0e7ff;
+    color: #3730a3;
+}
+
+.qa-action-indigo:hover {
+    background-color: #c7d2fe;
+}
+
+.qa-action-pink {
+    background-color: #fce7f3;
+    color: #9f1239;
+}
+
+.qa-action-pink:hover {
+    background-color: #fbcfe8;
+}
+
+.qa-action-gray {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.qa-action-gray:hover {
+    background-color: #e5e7eb;
+}
+
+.qa-action-gold {
+    background-color: #fef3c7;
+    color: #92400e;
+    background-image: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+/* Action Elements */
+.qa-action-icon {
+    font-size: 1.125rem;
+}
+
+.qa-action-label {
+    white-space: nowrap;
+}
+
+.qa-action-shortcut {
+    margin-left: auto;
+    padding: 0.125rem 0.375rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-family: monospace;
+}
+
+/* Groups */
+.qa-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.qa-group {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.qa-group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #f9fafb;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    transition: background-color 0.2s;
+}
+
+.qa-group-header:hover {
+    background-color: #f3f4f6;
+}
+
+.qa-group-icon {
+    font-size: 1.125rem;
+}
+
+.qa-group-label {
+    flex: 1;
+    text-align: left;
+}
+
+.qa-group-toggle {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.qa-group-actions {
+    padding: 0.75rem;
+    background-color: white;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Load More Button */
+.qa-load-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background-color: #f9fafb;
+    border: 1px dashed #d1d5db;
+    border-radius: 0.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.qa-load-more:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+.qa-load-more-icon {
+    font-size: 1rem;
+}
+
+.qa-load-more-count {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+/* Empty State */
+.qa-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.qa-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.qa-empty-text {
+    font-size: 0.875rem;
+}
+
+/* Quick Action Bar */
+.qa-bar {
+    background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+    border: 1px solid #c7d2fe;
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+.qa-bar-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4b5563;
+    margin-bottom: 0.75rem;
+}
+
+.qa-bar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.qa-bar-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.qa-bar-action:hover {
+    transform: scale(1.05);
+}
+
+.qa-bar-action-custom {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.qa-bar-action-custom:hover {
+    background-color: #e5e7eb;
+}
+
+.qa-bar-icon {
+    font-size: 1rem;
+}
+
+/* Animation */
+@keyframes qa-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.qa-action,
+.qa-bar-action {
+    animation: qa-slide-in 0.2s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .qa-actions {
+        gap: 0.375rem;
+    }
+    
+    .qa-action {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+    
+    .qa-action-shortcut {
+        display: none;
+    }
+}

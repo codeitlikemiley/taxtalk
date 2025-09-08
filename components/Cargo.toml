@@ -41,7 +41,7 @@ members = [
     
     # Demo & testing
     "showcase"
-, "entity-combobox", "simple-form", "command-entity-input", "mixed-input", "dual-mode-input", "multi-select-combobox", "smart-suggestions"]
+, "entity-combobox", "simple-form", "command-entity-input", "mixed-input", "dual-mode-input", "multi-select-combobox", "smart-suggestions", "quick-actions", "command-palette"]
 
 [workspace.package]
 version = "0.1.0"

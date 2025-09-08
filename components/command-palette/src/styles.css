@@ -1,0 +1,369 @@
+/* Command Palette Styles */
+
+/* Overlay */
+.cp-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 5rem;
+    z-index: 9999;
+    animation: cp-fade-in 0.15s ease-out;
+}
+
+/* Container */
+.cp-container {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 42rem;
+    max-height: 32rem;
+    display: flex;
+    flex-direction: column;
+    animation: cp-slide-down 0.2s ease-out;
+}
+
+/* Search */
+.cp-search {
+    position: relative;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.cp-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1.125rem;
+    border: none;
+    outline: none;
+    background: transparent;
+}
+
+.cp-search-input::placeholder {
+    color: #9ca3af;
+}
+
+.cp-search-spinner {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.cp-spinner {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: cp-spin 0.6s linear infinite;
+}
+
+/* Results */
+.cp-results {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 200px;
+}
+
+/* Commands */
+.cp-commands {
+    padding: 0.5rem 0;
+}
+
+.cp-command {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    text-align: left;
+}
+
+.cp-command:hover {
+    background-color: #f9fafb;
+}
+
+.cp-command-selected {
+    background-color: #eff6ff !important;
+}
+
+.cp-command-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.cp-command-icon {
+    font-size: 1.5rem;
+    width: 2rem;
+    text-align: center;
+}
+
+.cp-command-text {
+    flex: 1;
+}
+
+.cp-command-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #111827;
+}
+
+.cp-command-desc {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.125rem;
+}
+
+.cp-command-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cp-command-category {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.5rem;
+    background-color: #f3f4f6;
+    color: #6b7280;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.cp-command-shortcut {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    border-radius: 0.25rem;
+    font-family: monospace;
+}
+
+/* Sections */
+.cp-section {
+    padding: 0.5rem 1rem;
+}
+
+.cp-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* NLP Mode */
+.cp-nlp {
+    padding: 1.5rem;
+}
+
+.cp-nlp-result {
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.cp-nlp-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.cp-nlp-icon {
+    font-size: 1.5rem;
+}
+
+.cp-nlp-title {
+    flex: 1;
+    font-weight: 500;
+    color: #374151;
+}
+
+.cp-nlp-confidence {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    background-color: #10b981;
+    color: white;
+    border-radius: 0.25rem;
+}
+
+.cp-nlp-params {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.cp-nlp-param {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cp-nlp-param-name {
+    font-size: 0.875rem;
+    color: #6b7280;
+    min-width: 5rem;
+}
+
+.cp-nlp-param-value {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #111827;
+}
+
+.cp-nlp-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.cp-nlp-action {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+.cp-nlp-action:hover {
+    background-color: #d1d5db;
+}
+
+.cp-nlp-action-primary {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.cp-nlp-action-primary:hover {
+    background-color: #2563eb;
+}
+
+.cp-nlp-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+}
+
+.cp-nlp-hint {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+/* Empty state */
+.cp-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+}
+
+.cp-empty-hint {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+/* Footer */
+.cp-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+}
+
+.cp-footer-hints {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cp-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.cp-hint kbd {
+    padding: 0.125rem 0.375rem;
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+    font-family: monospace;
+    font-size: 0.625rem;
+}
+
+.cp-footer-mode {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* Animations */
+@keyframes cp-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes cp-slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-1rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes cp-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .cp-overlay {
+        padding-top: 2rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .cp-container {
+        max-height: calc(100vh - 4rem);
+    }
+    
+    .cp-command-desc,
+    .cp-command-category {
+        display: none;
+    }
+    
+    .cp-footer-hints {
+        display: none;
+    }
+}

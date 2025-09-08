@@ -2,13 +2,18 @@
 
 ## Overview
 
-Leptos provides a comprehensive event handling system that integrates seamlessly with the reactive system. This chapter covers user interactions, event propagation, custom events, and best practices for managing user input effectively.
+Event handling is a crucial aspect of interactive web applications. Leptos provides a comprehensive event system that allows you to respond to user interactions, handle form submissions, manage keyboard input, and create custom events. This chapter covers the fundamental patterns for handling events in Leptos applications.
 
 ## Basic Event Handling
 
 ### Click Events
 
+The most common event is the click event. Leptos uses the `on:click` directive:
+
 ```rust
+use leptos::*;
+
+// Basic click event
 #[component]
 pub fn ClickButton() -> impl IntoView {
     let (count, set_count) = create_signal(0);
@@ -21,91 +26,182 @@ pub fn ClickButton() -> impl IntoView {
 }
 ```
 
-### Multiple Event Handlers
-
-```rust
-#[component]
-pub fn MultiEventButton() -> impl IntoView {
-    let (count, set_count) = create_signal(0);
-    let (message, set_message) = create_signal("Click me!".to_string());
-
-    view! {
-        <button
-            on:click=move |_| {
-                set_count.update(|n| *n + 1);
-                set_message("Clicked!".to_string());
-            }
-            on:mouseenter=move |_| set_message("Hovering...".to_string())
-            on:mouseleave=move |_| set_message("Click me!".to_string())
-        >
-            {message}
-        </button>
-    }
-}
-```
+**Key Points:**
+- Use `on:click` directive
+- Handler receives `_|` for unused event parameter
+- Use `move |_|` to capture variables by value
+- Update signals using `.update()` or `.set()`
 
 ### Event Object Access
 
-```rust
-#[component]
-pub fn EventDetails() -> impl IntoView {
-    let (click_info, set_click_info) = create_signal("No clicks yet".to_string());
+Access the event object for additional information:
 
-    let handle_click = move |ev: web_sys::MouseEvent| {
-        let x = ev.client_x();
-        let y = ev.client_y();
-        let button = ev.button();
-        set_click_info(format!("Clicked at ({}, {}) with button {}", x, y, button));
-    };
+```rust
+use leptos::*;
+
+// Accessing event properties
+#[component]
+pub fn EventInfo() -> impl IntoView {
+    let (event_info, set_event_info) = create_signal(String::new());
 
     view! {
-        <div>
-            <button on:click=handle_click>"Click me"</button>
-            <p>{click_info}</p>
-        </div>
+        <button on:click=move |ev| {
+            let target = event_target::<web_sys::HtmlButtonElement>(&ev);
+            if let Some(button) = target {
+                set_event_info.set(format!(
+                    "Button clicked: {}x{}",
+                    button.offset_width(),
+                    button.offset_height()
+                ));
+            }
+        }>
+            "Click for info"
+        </button>
+        <p>{event_info}</p>
     }
 }
 ```
 
-## Form Event Handling
+### Preventing Default Behavior
+
+Prevent default browser behavior when needed:
+
+```rust
+use leptos::*;
+
+// Preventing default behavior
+#[component]
+pub fn PreventDefaultExample() -> impl IntoView {
+    let (message, set_message) = create_signal(String::new());
+
+    view! {
+        <form on:submit=move |ev| {
+            ev.prevent_default(); // Prevent form submission
+            set_message.set("Form submitted (but not really)".to_string());
+        }>
+            <input type="text" placeholder="Type something" />
+            <button type="submit">"Submit (won't reload page)"</button>
+        </form>
+        <p>{message}</p>
+    }
+}
+```
+
+## Form Events
 
 ### Input Events
 
+Handle text input changes:
+
 ```rust
+use leptos::*;
+
+// Text input handling
 #[component]
 pub fn TextInput() -> impl IntoView {
-    let (value, set_value) = create_signal("".to_string());
+    let (text, set_text) = create_signal(String::new());
 
     view! {
         <div>
             <input
                 type="text"
-                prop:value=value
-                on:input=move |ev| {
-                    let target = event_target::<web_sys::HtmlInputElement>(&ev);
-                    if let Some(input) = target {
-                        set_value(input.value());
-                    }
-                }
+                on:input=move |ev| set_text.set(event_target_value(&ev))
+                prop:value=text
             />
-            <p>"You typed: " {value}</p>
+            <p>"You typed: " {text}</p>
         </div>
     }
 }
 ```
 
-### Controlled Components
+### Checkbox Events
+
+Handle checkbox state changes:
 
 ```rust
+use leptos::*;
+
+// Checkbox handling
 #[component]
-pub fn ControlledForm() -> impl IntoView {
-    let (name, set_name) = create_signal("".to_string());
-    let (email, set_email) = create_signal("".to_string());
+pub fn CheckboxExample() -> impl IntoView {
+    let (checked, set_checked) = create_signal(false);
+
+    view! {
+        <div>
+            <label>
+                <input
+                    type="checkbox"
+                    on:change=move |ev| set_checked.set(event_target_checked(&ev))
+                    prop:checked=checked
+                />
+                " I agree to the terms"
+            </label>
+            <p>
+                {move || if checked.get() {
+                    "Thank you for agreeing!"
+                } else {
+                    "Please agree to continue"
+                }}
+            </p>
+        </div>
+    }
+}
+```
+
+### Select Events
+
+Handle dropdown selection changes:
+
+```rust
+use leptos::*;
+
+// Select dropdown handling
+#[component]
+pub fn SelectExample() -> impl IntoView {
+    let (selected, set_selected) = create_signal("apple".to_string());
+
+    view! {
+        <div>
+            <select on:change=move |ev| set_selected.set(event_target_value(&ev))>
+                <option value="apple">"Apple"</option>
+                <option value="banana">"Banana"</option>
+                <option value="orange">"Orange"</option>
+            </select>
+            <p>"Selected: " {selected}</p>
+        </div>
+    }
+}
+```
+
+### Form Submission
+
+Handle complete form submissions:
+
+```rust
+use leptos::*;
+
+// Form submission
+#[derive(Clone, Debug)]
+pub struct FormData {
+    name: String,
+    email: String,
+    message: String,
+}
+
+#[component]
+pub fn ContactForm() -> impl IntoView {
+    let (form_data, set_form_data) = create_signal(FormData {
+        name: String::new(),
+        email: String::new(),
+        message: String::new(),
+    });
     let (submitted, set_submitted) = create_signal(false);
 
-    let handle_submit = move |ev: web_sys::SubmitEvent| {
-        ev.prevent_default(); // Prevent default form submission
-        set_submitted(true);
+    let handle_submit = move |ev: ev::SubmitEvent| {
+        ev.prevent_default();
+        set_submitted.set(true);
+        // Here you would typically send the data to a server
+        log::info!("Form submitted: {:?}", form_data.get());
     };
 
     view! {
@@ -114,12 +210,10 @@ pub fn ControlledForm() -> impl IntoView {
                 <label>"Name:"</label>
                 <input
                     type="text"
-                    prop:value=name
                     on:input=move |ev| {
-                        let target = event_target::<web_sys::HtmlInputElement>(&ev);
-                        if let Some(input) = target {
-                            set_name(input.value());
-                        }
+                        set_form_data.update(|data| {
+                            data.name = event_target_value(&ev);
+                        });
                     }
                 />
             </div>
@@ -127,148 +221,80 @@ pub fn ControlledForm() -> impl IntoView {
                 <label>"Email:"</label>
                 <input
                     type="email"
-                    prop:value=email
                     on:input=move |ev| {
-                        let target = event_target::<web_sys::HtmlInputElement>(&ev);
-                        if let Some(input) = target {
-                            set_email(input.value());
-                        }
+                        set_form_data.update(|data| {
+                            data.email = event_target_value(&ev);
+                        });
                     }
                 />
             </div>
-            <button type="submit">"Submit"</button>
+            <div>
+                <label>"Message:"</label>
+                <textarea
+                    on:input=move |ev| {
+                        set_form_data.update(|data| {
+                            data.message = event_target_value(&ev);
+                        });
+                    }
+                ></textarea>
+            </div>
+            <button type="submit">"Send Message"</button>
         </form>
-        <Show
-            when=move || submitted()
-            fallback=|| view! { <div></div> }
-        >
-            <p>"Form submitted with name: " {name} " and email: " {email}</p>
-        </Show>
-    }
-}
-```
-
-### Checkbox and Radio Buttons
-
-```rust
-#[component]
-pub fn CheckboxGroup() -> impl IntoView {
-    let (options, set_options) = create_signal(vec![
-        ("option1".to_string(), "Option 1".to_string(), false),
-        ("option2".to_string(), "Option 2".to_string(), false),
-        ("option3".to_string(), "Option 3".to_string(), false),
-    ]);
-
-    let handle_checkbox = move |index: usize| {
-        move |ev: web_sys::Event| {
-            let target = event_target::<web_sys::HtmlInputElement>(&ev);
-            if let Some(checkbox) = target {
-                set_options.update(|opts| {
-                    if let Some(opt) = opts.get_mut(index) {
-                        opt.2 = checkbox.checked();
-                    }
-                });
-            }
-        }
-    };
-
-    view! {
-        <div>
-            <For
-                each=move || options()
-                key=|opt| opt.0.clone()
-                children=move |(id, label, checked), index| {
-                    view! {
-                        <div>
-                            <input
-                                type="checkbox"
-                                id=id.clone()
-                                prop:checked=checked
-                                on:change=handle_checkbox(index)
-                            />
-                            <label for=id>{label}</label>
-                        </div>
-                    }
-                }
-            />
-            <p>
-                "Selected: " {
-                    options()
-                        .into_iter()
-                        .filter(|(_, _, checked)| *checked)
-                        .map(|(_, label, _)| label)
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                }
-            </p>
-        </div>
-    }
-}
-```
-
-### Select Dropdown
-
-```rust
-#[component]
-pub fn SelectDropdown() -> impl IntoView {
-    let (selected, set_selected) = create_signal("".to_string());
-    let options = vec![
-        ("", "Choose an option"),
-        ("option1", "Option 1"),
-        ("option2", "Option 2"),
-        ("option3", "Option 3"),
-    ];
-
-    view! {
-        <div>
-            <select
-                prop:value=selected
-                on:change=move |ev| {
-                    let target = event_target::<web_sys::HtmlSelectElement>(&ev);
-                    if let Some(select) = target {
-                        set_selected(select.value());
-                    }
-                }
-            >
-                {options.into_iter().map(|(value, label)| view! {
-                    <option value=value>{label}</option>
-                }).collect::<Vec<_>>()}
-            </select>
-            <p>"Selected: " {selected}</p>
-        </div>
+        {move || submitted.get().then(|| view! { <p>"Thank you for your message!"</p> })}
     }
 }
 ```
 
 ## Keyboard Events
 
-### Key Press Handling
+### Key Press Detection
+
+Handle specific key presses:
 
 ```rust
+use leptos::*;
+
+// Keyboard event handling
 #[component]
-pub fn KeyboardInput() -> impl IntoView {
-    let (input_value, set_input_value) = create_signal("".to_string());
-    let (last_key, set_last_key) = create_signal("".to_string());
+pub fn KeyboardExample() -> impl IntoView {
+    let (pressed_key, set_pressed_key) = create_signal(String::new());
 
-    let handle_keydown = move |ev: web_sys::KeyboardEvent| {
-        let key = ev.key();
-        set_last_key(key.clone());
+    view! {
+        <div>
+            <input
+                type="text"
+                placeholder="Press any key"
+                on:keydown=move |ev| {
+                    set_pressed_key.set(format!("Key: {}", ev.key()));
+                }
+            />
+            <p>"Last key pressed: " {pressed_key}</p>
+        </div>
+    }
+}
+```
 
-        // Handle special keys
-        match key.as_str() {
-            "Enter" => {
-                logging::log!("Enter pressed with value: {}", input_value());
-            }
-            "Escape" => {
-                set_input_value("".to_string());
-            }
-            "ArrowUp" => {
-                // Handle up arrow
-            }
-            "ArrowDown" => {
-                // Handle down arrow
-            }
-            _ => {}
+### Enter Key Handling
+
+Common pattern for form submission on Enter:
+
+```rust
+use leptos::*;
+
+// Enter key handling
+#[component]
+pub fn SearchInput() -> impl IntoView {
+    let (query, set_query) = create_signal(String::new());
+    let (results, set_results) = create_signal(vec![]);
+
+    let perform_search = move || {
+        let search_term = query.get();
+        if !search_term.is_empty() {
+            // Simulate search
+            set_results.set(vec![
+                format!("Result 1 for '{}'", search_term),
+                format!("Result 2 for '{}'", search_term),
+            ]);
         }
     };
 
@@ -276,122 +302,122 @@ pub fn KeyboardInput() -> impl IntoView {
         <div>
             <input
                 type="text"
-                prop:value=input_value
-                on:input=move |ev| {
-                    let target = event_target::<web_sys::HtmlInputElement>(&ev);
-                    if let Some(input) = target {
-                        set_input_value(input.value());
+                placeholder="Search..."
+                on:input=move |ev| set_query.set(event_target_value(&ev))
+                on:keydown=move |ev| {
+                    if ev.key() == "Enter" {
+                        perform_search();
                     }
                 }
-                on:keydown=handle_keydown
             />
-            <p>"Current value: " {input_value}</p>
-            <p>"Last key pressed: " {last_key}</p>
+            <button on:click=move |_| perform_search()>"Search"</button>
+            <ul>
+                {move || results.get()
+                    .into_iter()
+                    .map(|result| view! { <li>{result}</li> })
+                    .collect::<Vec<_>>()}
+            </ul>
         </div>
     }
 }
 ```
 
-### Auto-complete with Keyboard Navigation
+### Keyboard Shortcuts
+
+Implement keyboard shortcuts:
 
 ```rust
+use leptos::*;
+
+// Keyboard shortcuts
 #[component]
-pub fn AutocompleteInput() -> impl IntoView {
-    let (input_value, set_input_value) = create_signal("".to_string());
-    let (suggestions, set_suggestions) = create_signal(vec!["Apple", "Banana", "Cherry", "Date"]);
-    let (filtered_suggestions, set_filtered_suggestions) = create_signal(Vec::<String>::new());
-    let (selected_index, set_selected_index) = create_signal(0);
-    let (show_suggestions, set_show_suggestions) = create_signal(false);
+pub fn KeyboardShortcuts() -> impl IntoView {
+    let (message, set_message) = create_signal(String::new());
 
-    // Filter suggestions based on input
-    create_effect(move |_| {
-        let current_input = input_value();
-        if current_input.is_empty() {
-            set_filtered_suggestions(vec![]);
-            set_show_suggestions(false);
-        } else {
-            let filtered = suggestions()
-                .into_iter()
-                .filter(|s| s.to_lowercase().contains(&current_input.to_lowercase()))
-                .collect::<Vec<_>>();
-            set_filtered_suggestions(filtered);
-            set_show_suggestions(true);
-            set_selected_index(0);
-        }
-    });
+    let handle_keydown = move |ev: ev::KeyboardEvent| {
+        let key = ev.key();
+        let ctrl = ev.ctrl_key();
 
-    let handle_keydown = move |ev: web_sys::KeyboardEvent| {
-        match ev.key().as_str() {
-            "ArrowDown" => {
-                ev.prevent_default();
-                set_selected_index.update(|i| {
-                    let max_index = filtered_suggestions().len().saturating_sub(1);
-                    *i = (*i + 1).min(max_index);
-                });
-            }
-            "ArrowUp" => {
-                ev.prevent_default();
-                set_selected_index.update(|i| *i = i.saturating_sub(1));
-            }
-            "Enter" => {
-                if show_suggestions() && !filtered_suggestions().is_empty() {
-                    ev.prevent_default();
-                    if let Some(selected) = filtered_suggestions().get(selected_index()) {
-                        set_input_value(selected.clone());
-                        set_show_suggestions(false);
-                    }
-                }
-            }
-            "Escape" => {
-                set_show_suggestions(false);
-            }
-            _ => {}
+        if ctrl && key == "s" {
+            ev.prevent_default();
+            set_message.set("Ctrl+S: Save".to_string());
+        } else if ctrl && key == "z" {
+            ev.prevent_default();
+            set_message.set("Ctrl+Z: Undo".to_string());
+        } else if key == "Escape" {
+            set_message.set("Escape: Cancel".to_string());
         }
     };
 
     view! {
-        <div class="autocomplete-container">
-            <input
-                type="text"
-                prop:value=input_value
-                on:input=move |ev| {
-                    let target = event_target::<web_sys::HtmlInputElement>(&ev);
-                    if let Some(input) = target {
-                        set_input_value(input.value());
-                    }
+        <div on:keydown=handle_keydown tabindex="0">
+            <p>"Press Ctrl+S to save, Ctrl+Z to undo, or Escape to cancel"</p>
+            <p>{message}</p>
+        </div>
+    }
+}
+```
+
+## Mouse Events
+
+### Mouse Position Tracking
+
+Track mouse movement:
+
+```rust
+use leptos::*;
+
+// Mouse position tracking
+#[component]
+pub fn MouseTracker() -> impl IntoView {
+    let (position, set_position) = create_signal((0, 0));
+
+    view! {
+        <div
+            style="width: 300px; height: 200px; border: 1px solid black; position: relative;"
+            on:mousemove=move |ev| {
+                set_position.set((ev.client_x(), ev.client_y()));
+            }
+        >
+            <p style="position: absolute; top: 10px; left: 10px;">
+                "Mouse position: " {move || format!("({}, {})", position.get().0, position.get().1)}
+            </p>
+        </div>
+    }
+}
+```
+
+### Mouse Button Events
+
+Handle different mouse buttons:
+
+```rust
+use leptos::*;
+
+// Mouse button events
+#[component]
+pub fn MouseButtons() -> impl IntoView {
+    let (button_info, set_button_info) = create_signal(String::new());
+
+    view! {
+        <div>
+            <button
+                on:mousedown=move |ev| {
+                    let button = match ev.button() {
+                        0 => "Left",
+                        1 => "Middle",
+                        2 => "Right",
+                        _ => "Other",
+                    };
+                    set_button_info.set(format!("{} button pressed", button));
                 }
-                on:focus=move |_| {
-                    if !filtered_suggestions().is_empty() {
-                        set_show_suggestions(true);
-                    }
+                on:mouseup=move |_| {
+                    set_button_info.set("Button released".to_string());
                 }
-                on:keydown=handle_keydown
-            />
-            <Show
-                when=move || show_suggestions() && !filtered_suggestions().is_empty()
-                fallback=|| view! { <div></div> }
             >
-                <ul class="suggestions-list">
-                    <For
-                        each=move || filtered_suggestions()
-                        key=|s| s.clone()
-                        children=move |suggestion, index| {
-                            let is_selected = move || index == selected_index();
-                            view! {
-                                <li
-                                    class=move || if is_selected() { "selected" } else { "" }
-                                    on:click=move |_| {
-                                        set_input_value(suggestion.clone());
-                                        set_show_suggestions(false);
-                                    }
-                                >
-                                    {suggestion}
-                                </li>
-                            }
-                        }
-                    />
-                </ul>
-            </Show>
+                "Click with different buttons"
+            </button>
+            <p>{button_info}</p>
         </div>
     }
 }
@@ -399,174 +425,192 @@ pub fn AutocompleteInput() -> impl IntoView {
 
 ## Custom Events
 
-### Creating Custom Event Handlers
+### Creating Custom Events
+
+Define and dispatch custom events:
 
 ```rust
 use leptos::*;
+use web_sys::{CustomEvent, CustomEventInit};
 
-// Define custom event data
-#[derive(Clone, Debug)]
-pub struct CustomEventData {
-    pub action: String,
-    pub payload: serde_json::Value,
-}
-
-// Custom event callback type
-pub type CustomEventHandler = Callback<CustomEventData, ()>;
-
+// Custom event creation
 #[component]
-pub fn CustomEventEmitter(
-    on_custom_event: CustomEventHandler,
-) -> impl IntoView {
-    let emit_event = move |action: &str, payload: serde_json::Value| {
-        on_custom_event(CustomEventData {
-            action: action.to_string(),
-            payload,
-        });
+pub fn CustomEventExample() -> impl IntoView {
+    let (messages, set_messages) = create_signal(vec![]);
+
+    let dispatch_custom_event = move |message: String| {
+        let mut init = CustomEventInit::new();
+        init.detail(&wasm_bindgen::JsValue::from_str(&message));
+
+        let event = CustomEvent::new_with_event_init_dict("my-custom-event", &init)
+            .unwrap();
+
+        // Dispatch on the window or a specific element
+        web_sys::window()
+            .unwrap()
+            .dispatch_event(&event)
+            .unwrap();
     };
+
+    // Listen for custom events
+    create_effect(move |_| {
+        let closure = Closure::wrap(Box::new(move |event: CustomEvent| {
+            let detail = event.detail().as_string().unwrap_or_default();
+            set_messages.update(|msgs| msgs.push(format!("Custom event: {}", detail)));
+        }) as Box<dyn FnMut(CustomEvent)>);
+
+        web_sys::window()
+            .unwrap()
+            .add_event_listener_with_callback("my-custom-event", closure.as_ref().unchecked_ref())
+            .unwrap();
+
+        closure.forget(); // Keep the closure alive
+    });
 
     view! {
         <div>
-            <button on:click=move |_| emit_event("increment", serde_json::json!(1))>
-                "Increment"
+            <button on:click=move |_| dispatch_custom_event("Hello!".to_string())>
+                "Send Custom Event"
             </button>
-            <button on:click=move |_| emit_event("decrement", serde_json::json!(-1))>
-                "Decrement"
-            </button>
-            <button on:click=move |_| emit_event("reset", serde_json::json!(0))>
-                "Reset"
-            </button>
+            <ul>
+                {move || messages.get()
+                    .into_iter()
+                    .map(|msg| view! { <li>{msg}</li> })
+                    .collect::<Vec<_>>()}
+            </ul>
         </div>
     }
 }
 ```
 
-### Event Delegation
+## Event Delegation
+
+### Parent Element Event Handling
+
+Handle events on parent elements for dynamic children:
 
 ```rust
+use leptos::*;
+
+// Event delegation
 #[component]
-pub fn EventDelegation() -> impl IntoView {
-    let (items, set_items) = create_signal(vec![
-        "Item 1".to_string(),
-        "Item 2".to_string(),
-        "Item 3".to_string(),
+pub fn TodoList() -> impl IntoView {
+    let (todos, set_todos) = create_signal(vec![
+        "Buy groceries".to_string(),
+        "Walk the dog".to_string(),
+        "Do laundry".to_string(),
     ]);
 
-    let handle_item_click = move |ev: web_sys::MouseEvent| {
-        // Use event delegation to handle clicks on any item
-        let target = ev.target().unwrap();
-        let element = target.dyn_ref::<web_sys::Element>().unwrap();
-
-        if let Some(item_element) = element.closest("[data-item-id]") {
-            if let Ok(Some(item_id)) = item_element.get_attribute("data-item-id") {
-                logging::log!("Clicked item: {}", item_id);
-                // Handle item click logic here
+    let handle_click = move |ev: ev::MouseEvent| {
+        let target = event_target::<web_sys::Element>(&ev);
+        if let Some(element) = target {
+            if let Some(id) = element.get_attribute("data-id") {
+                if let Ok(index) = id.parse::<usize>() {
+                    set_todos.update(|todos| {
+                        if index < todos.len() {
+                            todos.remove(index);
+                        }
+                    });
+                }
             }
         }
     };
 
     view! {
-        <ul on:click=handle_item_click>
-            <For
-                each=move || items()
-                key=|item| item.clone()
-                children=move |item, index| {
-                    view! {
-                        <li data-item-id=format!("item-{}", index)>
-                            {item}
-                        </li>
-                    }
-                }
-            />
+        <ul on:click=handle_click>
+            {move || todos.get()
+                .into_iter()
+                .enumerate()
+                .map(|(index, todo)| view! {
+                    <li data-id=index>
+                        {todo}
+                        <button>"Delete"</button>
+                    </li>
+                })
+                .collect::<Vec<_>>()}
         </ul>
     }
 }
 ```
 
-## Event Propagation and Prevention
+## Event Propagation
 
 ### Stopping Event Propagation
 
+Control event bubbling:
+
 ```rust
+use leptos::*;
+
+// Event propagation control
 #[component]
 pub fn EventPropagation() -> impl IntoView {
-    let (outer_clicks, set_outer_clicks) = create_signal(0);
-    let (inner_clicks, set_inner_clicks) = create_signal(0);
+    let (messages, set_messages) = create_signal(vec![]);
 
     view! {
-        <div
-            class="outer"
-            on:click=move |_| {
-                set_outer_clicks.update(|n| *n + 1);
-                logging::log!("Outer div clicked");
-            }
-        >
-            <div
-                class="inner"
-                on:click=move |ev| {
-                    ev.stop_propagation(); // Prevent event from bubbling up
-                    set_inner_clicks.update(|n| *n + 1);
-                    logging::log!("Inner div clicked");
-                }
-            >
-                "Click me!"
+        <div on:click=move |_| set_messages.update(|msgs| msgs.push("Outer div clicked".to_string()))>
+            <div on:click=move |_| set_messages.update(|msgs| msgs.push("Inner div clicked".to_string()))>
+                <button
+                    on:click=move |ev| {
+                        ev.stop_propagation();
+                        set_messages.update(|msgs| msgs.push("Button clicked".to_string()));
+                    }
+                >
+                    "Click me (stops propagation)"
+                </button>
             </div>
-            <p>"Outer clicks: " {outer_clicks}</p>
-            <p>"Inner clicks: " {inner_clicks}</p>
         </div>
+        <ul>
+            {move || messages.get()
+                .into_iter()
+                .rev() // Show newest first
+                .take(5) // Show last 5 messages
+                .map(|msg| view! { <li>{msg}</li> })
+                .collect::<Vec<_>>()}
+        </ul>
     }
 }
 ```
 
-### Preventing Default Behavior
+## Debouncing and Throttling
+
+### Debounced Input
+
+Implement debounced search input:
 
 ```rust
-#[component]
-pub fn PreventDefault() -> impl IntoView {
-    view! {
-        <div>
-            <a
-                href="https://example.com"
-                on:click=move |ev| {
-                    ev.prevent_default(); // Prevent navigation
-                    logging::log!("Link clicked but navigation prevented");
-                }
-            >
-                "This link won't navigate"
-            </a>
-        </div>
-    }
-}
-```
-
-## Advanced Event Patterns
-
-### Debounced Events
-
-```rust
+use leptos::*;
 use std::time::Duration;
 
+// Debounced input
 #[component]
 pub fn DebouncedSearch() -> impl IntoView {
-    let (search_term, set_search_term) = create_signal("".to_string());
-    let (debounced_term, set_debounced_term) = create_signal("".to_string());
+    let (query, set_query) = create_signal(String::new());
+    let (debounced_query, set_debounced_query) = create_signal(String::new());
 
-    // Debounce the search term
+    // Debounce the input
     create_effect(move |_| {
-        let current_term = search_term();
-        let timeout_id = set_timeout(
-            move || set_debounced_term(current_term),
-            Duration::from_millis(300),
+        let current_query = query.get();
+        let timeout_id = set_timeout_with_handle(
+            move || {
+                set_debounced_query.set(current_query);
+            },
+            Duration::from_millis(300)
         );
 
-        on_cleanup(move || clear_timeout(timeout_id));
+        // Cancel previous timeout if it exists
+        if let Ok(id) = timeout_id {
+            on_cleanup(move || {
+                id.clear();
+            });
+        }
     });
 
-    // Perform search when debounced term changes
+    // Perform search when debounced query changes
     create_effect(move |_| {
-        let term = debounced_term();
-        if !term.is_empty() {
-            logging::log!("Searching for: {}", term);
+        let search_term = debounced_query.get();
+        if !search_term.is_empty() {
+            log::info!("Searching for: {}", search_term);
             // Perform actual search here
         }
     });
@@ -576,214 +620,214 @@ pub fn DebouncedSearch() -> impl IntoView {
             <input
                 type="text"
                 placeholder="Search..."
-                prop:value=search_term
-                on:input=move |ev| {
-                    let target = event_target::<web_sys::HtmlInputElement>(&ev);
-                    if let Some(input) = target {
-                        set_search_term(input.value());
-                    }
-                }
+                on:input=move |ev| set_query.set(event_target_value(&ev))
             />
-            <p>"Searching for: " {debounced_term}</p>
+            <p>"Searching for: " {debounced_query}</p>
         </div>
     }
 }
 ```
 
-### Throttled Events
+## Event Handler Patterns
+
+### Event Handler Composition
+
+Create reusable event handlers:
 
 ```rust
+use leptos::*;
+
+// Composable event handlers
+fn with_logging<F, T>(handler: F) -> impl Fn(T)
+where
+    F: Fn(T),
+    T: std::fmt::Debug + Clone,
+{
+    move |event| {
+        log::info!("Event triggered: {:?}", event);
+        handler(event);
+    }
+}
+
 #[component]
-pub fn ThrottledScroll() -> impl IntoView {
-    let (scroll_position, set_scroll_position) = create_signal(0);
-    let (last_update, set_last_update) = create_signal(0u64);
+pub fn ComposableHandlers() -> impl IntoView {
+    let (count, set_count) = create_signal(0);
 
-    let handle_scroll = move |_| {
-        let now = js_sys::Date::now() as u64;
-        let time_since_last_update = now - last_update();
+    let increment = move |_| set_count.update(|n| *n + 1);
+    let increment_with_logging = with_logging(increment);
 
-        // Only update if at least 100ms have passed
-        if time_since_last_update >= 100 {
-            if let Ok(Some(window)) = web_sys::window() {
-                if let Ok(scroll_y) = window.scroll_y() {
-                    set_scroll_position(scroll_y as i32);
-                    set_last_update(now);
+    view! {
+        <button on:click=increment_with_logging>
+            "Increment (with logging): " {count}
+        </button>
+    }
+}
+```
+
+### Conditional Event Handlers
+
+Enable/disable event handlers based on conditions:
+
+```rust
+use leptos::*;
+
+// Conditional event handlers
+#[component]
+pub fn ConditionalButton() -> impl IntoView {
+    let (is_enabled, set_is_enabled) = create_signal(true);
+    let (click_count, set_click_count) = create_signal(0);
+
+    let handle_click = move |_| {
+        set_click_count.update(|n| *n + 1);
+    };
+
+    view! {
+        <div>
+            <button
+                on:click=move |ev| {
+                    if is_enabled.get() {
+                        handle_click(ev);
+                    }
                 }
+                class=move || if is_enabled.get() { "enabled" } else { "disabled" }
+            >
+                "Click me: " {click_count}
+            </button>
+            <br />
+            <label>
+                <input
+                    type="checkbox"
+                    prop:checked=is_enabled
+                    on:change=move |ev| set_is_enabled.set(event_target_checked(&ev))
+                />
+                " Enable button"
+            </label>
+        </div>
+    }
+}
+```
+
+## Error Handling in Events
+
+### Event Error Handling
+
+Handle errors that occur during event processing:
+
+```rust
+use leptos::*;
+
+// Error handling in events
+#[component]
+pub fn SafeEventHandler() -> impl IntoView {
+    let (result, set_result) = create_signal(String::new());
+
+    let handle_click = move |_| {
+        match perform_risky_operation() {
+            Ok(success) => set_result.set(format!("Success: {}", success)),
+            Err(error) => {
+                log::error!("Operation failed: {}", error);
+                set_result.set(format!("Error: {}", error));
             }
         }
     };
 
-    // Attach scroll listener on mount
-    create_effect(move |_| {
-        if let Ok(Some(window)) = web_sys::window() {
-            let closure = Closure::wrap(Box::new(handle_scroll) as Box<dyn FnMut()>);
-            let _ = window.add_event_listener_with_callback("scroll", closure.as_ref().unchecked_ref());
-            closure.forget(); // Leak the closure to keep it alive
+    view! {
+        <div>
+            <button on:click=handle_click>
+                "Perform Risky Operation"
+            </button>
+            <p>{result}</p>
+        </div>
+    }
+}
+
+fn perform_risky_operation() -> Result<String, String> {
+    // Simulate an operation that might fail
+    if rand::random::<bool>() {
+        Ok("Operation completed successfully".to_string())
+    } else {
+        Err("Something went wrong".to_string())
+    }
+}
+```
+
+## Performance Considerations
+
+### Event Handler Optimization
+
+Avoid creating new closures on every render:
+
+```rust
+use leptos::*;
+
+// Optimized event handlers
+#[component]
+pub fn OptimizedHandlers() -> impl IntoView {
+    let (count, set_count) = create_signal(0);
+
+    // Create handler once, outside the view
+    let increment = move |_| set_count.update(|n| *n + 1);
+
+    view! {
+        <div>
+            <button on:click=increment.clone()>"Button 1"</button>
+            <button on:click=increment.clone()>"Button 2"</button>
+            <button on:click=increment>"Button 3"</button>
+            <p>"Count: " {count}</p>
+        </div>
+    }
+}
+```
+
+### Memoized Event Handlers
+
+Use memoization for complex event handlers:
+
+```rust
+use leptos::*;
+
+// Memoized event handlers
+#[component]
+pub fn MemoizedHandler() -> impl IntoView {
+    let (items, set_items) = create_signal(vec![1, 2, 3, 4, 5]);
+
+    // Memoize the expensive handler
+    let remove_item_handler = create_memo(move |_| {
+        let current_items = items.get();
+        move |index: usize| {
+            set_items.set(
+                current_items.iter()
+                    .enumerate()
+                    .filter(|(i, _)| *i != index)
+                    .map(|(_, item)| *item)
+                    .collect()
+            );
         }
     });
 
     view! {
-        <div>
-            <div style="height: 2000px; padding: 20px;">
-                "Scroll down to see the position update (throttled)"
-            </div>
-            <div style="position: fixed; bottom: 20px; right: 20px; background: white; padding: 10px; border: 1px solid black;">
-                "Scroll position: " {scroll_position}
-            </div>
-        </div>
-    }
-}
-```
-
-## File Upload Events
-
-### Single File Upload
-
-```rust
-#[component]
-pub fn FileUpload() -> impl IntoView {
-    let (file_name, set_file_name) = create_signal("No file selected".to_string());
-    let (file_size, set_file_size) = create_signal(0);
-
-    let handle_file_change = move |ev: web_sys::Event| {
-        let target = event_target::<web_sys::HtmlInputElement>(&ev);
-        if let Some(input) = target {
-            if let Ok(Some(file_list)) = input.files() {
-                if file_list.length() > 0 {
-                    if let Ok(Some(file)) = file_list.get(0) {
-                        set_file_name(file.name());
-                        set_file_size(file.size() as usize);
+        <ul>
+            {move || items.get()
+                .into_iter()
+                .enumerate()
+                .map(|(index, item)| {
+                    let handler = remove_item_handler.get();
+                    view! {
+                        <li>
+                            {item}
+                            <button on:click=move |_| handler(index)>"Remove"</button>
+                        </li>
                     }
-                }
-            }
-        }
-    };
-
-    view! {
-        <div>
-            <input
-                type="file"
-                on:change=handle_file_change
-            />
-            <p>"Selected file: " {file_name}</p>
-            <p>"File size: " {file_size} " bytes"</p>
-        </div>
+                })
+                .collect::<Vec<_>>()}
+        </ul>
     }
 }
 ```
 
-### Multiple File Upload with Preview
+## Testing Event Handlers
 
-```rust
-#[component]
-pub fn MultiFileUpload() -> impl IntoView {
-    let (files, set_files) = create_signal(Vec::<(String, usize)>::new());
-
-    let handle_files_change = move |ev: web_sys::Event| {
-        let target = event_target::<web_sys::HtmlInputElement>(&ev);
-        if let Some(input) = target {
-            if let Ok(Some(file_list)) = input.files() {
-                let mut new_files = Vec::new();
-                for i in 0..file_list.length() {
-                    if let Ok(Some(file)) = file_list.get(i) {
-                        new_files.push((file.name(), file.size() as usize));
-                    }
-                }
-                set_files(new_files);
-            }
-        }
-    };
-
-    view! {
-        <div>
-            <input
-                type="file"
-                multiple=true
-                on:change=handle_files_change
-            />
-            <div>
-                <h3>"Selected files:"</h3>
-                <ul>
-                    <For
-                        each=move || files()
-                        key=|(name, _)| name.clone()
-                        children=move |(name, size)| {
-                            view! {
-                                <li>{name} " (" {size} " bytes)"</li>
-                            }
-                        }
-                    />
-                </ul>
-            </div>
-        </div>
-    }
-}
-```
-
-## Drag and Drop Events
-
-### File Drag and Drop
-
-```rust
-#[component]
-pub fn DragDropUpload() -> impl IntoView {
-    let (is_dragging, set_is_dragging) = create_signal(false);
-    let (dropped_files, set_dropped_files) = create_signal(Vec::<String>::new());
-
-    let handle_drag_over = move |ev: web_sys::DragEvent| {
-        ev.prevent_default();
-        set_is_dragging(true);
-    };
-
-    let handle_drag_leave = move |_| {
-        set_is_dragging(false);
-    };
-
-    let handle_drop = move |ev: web_sys::DragEvent| {
-        ev.prevent_default();
-        set_is_dragging(false);
-
-        if let Ok(Some(data_transfer)) = ev.data_transfer() {
-            if let Ok(Some(file_list)) = data_transfer.files() {
-                let mut file_names = Vec::new();
-                for i in 0..file_list.length() {
-                    if let Ok(Some(file)) = file_list.get(i) {
-                        file_names.push(file.name());
-                    }
-                }
-                set_dropped_files(file_names);
-            }
-        }
-    };
-
-    view! {
-        <div
-            class=move || if is_dragging() { "drop-zone dragging" } else { "drop-zone" }
-            on:dragover=handle_drag_over
-            on:dragleave=handle_drag_leave
-            on:drop=handle_drop
-        >
-            <p>"Drop files here"</p>
-            <div>
-                <h4>"Dropped files:"</h4>
-                <ul>
-                    <For
-                        each=move || dropped_files()
-                        key=|name| name.clone()
-                        children=move |name| {
-                            view! { <li>{name}</li> }
-                        }
-                    />
-                </ul>
-            </div>
-        </div>
-    }
-}
-```
-
-## Event Testing
-
-### Testing Event Handlers
+### Event Handler Testing
 
 ```rust
 #[cfg(test)]
@@ -792,56 +836,63 @@ mod tests {
     use leptos::*;
 
     #[test]
-    fn test_click_counter() {
+    fn test_button_click_increments_counter() {
+        let mut app = create_runtime();
+
         let (count, set_count) = create_signal(0);
+        let increment = move |_| set_count.update(|n| *n + 1);
 
-        // Simulate click event
-        set_count.update(|n| *n + 1);
+        // Simulate button click
+        increment(());
 
-        assert_eq!(count(), 1);
+        assert_eq!(count.get(), 1);
+
+        app.dispose();
     }
 
     #[test]
-    fn test_form_validation() {
-        let (email, set_email) = create_signal("".to_string());
-        let (is_valid, set_is_valid) = create_signal(false);
+    fn test_form_submission_prevents_default() {
+        let mut app = create_runtime();
 
-        // Simulate email input
-        set_email("test@example.com".to_string());
+        let (submitted, set_submitted) = create_signal(false);
 
-        // Check if email is valid
-        create_effect(move |_| {
-            let email_pattern = regex::Regex::new(r"^[^@]+@[^@]+\.[^@]+$").unwrap();
-            set_is_valid(email_pattern.is_match(&email()));
-        });
+        let handle_submit = move |ev: ev::SubmitEvent| {
+            ev.prevent_default();
+            set_submitted.set(true);
+        };
 
-        assert!(is_valid());
+        // In a real test, you'd need to create a mock event
+        // This is a simplified example
+
+        app.dispose();
     }
 }
 ```
 
-## Best Practices
-
-1. **Use event delegation**: For dynamic lists to improve performance
-2. **Prevent default behavior**: When implementing custom form handling
-3. **Stop propagation**: When nested elements have conflicting event handlers
-4. **Debounce/throttle**: For performance-critical events like scroll and resize
-5. **Handle errors gracefully**: Provide fallbacks for failed event handlers
-6. **Clean up event listeners**: Use `on_cleanup` to prevent memory leaks
-7. **Use appropriate event types**: Choose the most specific event for your use case
-8. **Test event interactions**: Ensure event handlers work as expected
-9. **Consider accessibility**: Make sure events work with keyboard navigation
-10. **Document event APIs**: Clearly specify what events components emit
-
 ## Summary
 
-Leptos event handling provides:
+Leptos provides a comprehensive event handling system that integrates seamlessly with its reactive model. Key concepts covered:
 
-- **Reactive event binding**: Events automatically update reactive state
-- **Type-safe event handling**: Strong typing for event objects and targets
-- **Flexible event patterns**: Support for custom events and event delegation
-- **Performance optimizations**: Debouncing, throttling, and efficient updates
-- **Comprehensive event types**: Support for all DOM events and custom events
-- **Clean integration**: Events work seamlessly with the reactive system
+1. **Basic Events**: Click, input, change events with `on:` directives
+2. **Form Handling**: Text inputs, checkboxes, selects, and form submission
+3. **Keyboard Events**: Key detection, shortcuts, and special key handling
+4. **Mouse Events**: Position tracking, button detection, and movement
+5. **Custom Events**: Creating and dispatching custom events
+6. **Event Delegation**: Handling events on parent elements
+7. **Event Propagation**: Controlling event bubbling with `stop_propagation()`
+8. **Debouncing**: Implementing delayed event handling
+9. **Performance**: Optimizing event handlers and avoiding unnecessary re-renders
+10. **Error Handling**: Graceful error handling in event handlers
 
-Mastering event handling is crucial for building interactive Leptos applications that provide excellent user experiences.
+Best practices:
+- Use `move |_|` for simple handlers, `move |ev|` when you need the event
+- Prevent default behavior with `ev.prevent_default()` when needed
+- Use `event_target_value()` and `event_target_checked()` for form inputs
+- Implement debouncing for search inputs and other frequent events
+- Memoize expensive event handlers
+- Handle errors gracefully in event handlers
+- Test event handlers thoroughly
+
+---
+
+**Next:** [06: Data Flow](06-data-flow.md) - Learn about props, context, and state management patterns.
