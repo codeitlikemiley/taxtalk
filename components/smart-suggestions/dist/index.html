@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Suggestions Demo - AI-Powered Suggestions</title>
+    
+<script type="module">
+import init, * as bindings from '/smart-suggestions-demo-157229731c92a5c9.js';
+const wasm = await init({ module_or_path: '/smart-suggestions-demo-157229731c92a5c9_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    <link rel="stylesheet" href="/styles-f1246b0812ae6d.css" integrity="sha384-xzUaPsVinPu0MQ6yrjs39rX1DuRleHx49QyBJqsqnU1Cl8WDdtQ/bzG3oe7IpTqU"/>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        /* Tailwind-like utility classes for demo */
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .bg-blue-600 { background-color: #2563eb; }
+        .bg-gray-200 { background-color: #e5e7eb; }
+        .text-white { color: white; }
+        .text-gray-700 { color: #374151; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .hover\:bg-gray-300:hover { background-color: #d1d5db; }
+        
+        button {
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+    </style>
+<link rel="modulepreload" href="/smart-suggestions-demo-157229731c92a5c9.js" crossorigin="anonymous" integrity="sha384-sAuCtEoVEYoBgBNlGeqfpIU1rWf3h8h40LXFcqqxm8pJO5ebuN+VAZeN25Mi/7Av"><link rel="preload" href="/smart-suggestions-demo-157229731c92a5c9_bg.wasm" crossorigin="anonymous" integrity="sha384-chm376ML+BiDMAvwvoZaVc4iH7r2YNRPKsW+GZaBm4x0yrLXyKaUhCpbmTrXkVGx" as="fetch" type="application/wasm"></head>
+<body>
+    <!-- Leptos app mounts here -->
+</body>
+</html>

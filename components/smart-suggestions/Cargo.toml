@@ -1,0 +1,33 @@
+[package]
+name = "smart-suggestions"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "smart-suggestions-demo"
+path = "src/main.rs"
+
+[dependencies]
+leptos.workspace = true
+leptos_meta.workspace = true
+leptos_router.workspace = true
+console_error_panic_hook.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = ["Storage", "Window"] }
+serde.workspace = true
+serde_json.workspace = true
+gloo-timers.workspace = true
+chrono = { version = "0.4", features = ["wasm-bindgen", "serde"] }
+gloo-storage = "0.3"
+
+# Internal dependencies
+taxtalk-ui-core.workspace = true
+
+[dev-dependencies]
+wasm-bindgen-test.workspace = true
+pretty_assertions.workspace = true
