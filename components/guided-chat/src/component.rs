@@ -7,6 +7,7 @@ use gloo_timers::future::TimeoutFuture;
 use leptos::task::spawn_local;
 use wasm_bindgen::JsCast;
 use std::collections::HashMap;
+use chrono;
 
 /// Guided chat component for step-by-step workflows
 #[component]
@@ -78,7 +79,6 @@ where
         let step_manager = step_manager.clone();
         let config = config.clone();
         let on_message = on_message.clone();
-        let on_complete = on_complete.clone();
         
         move |ev: SubmitEvent| {
             ev.prevent_default();
@@ -112,6 +112,7 @@ where
             // Process the input
             let step_manager = step_manager.clone();
             let config = config.clone();
+            let on_complete = on_complete.clone();
             spawn_local(async move {
                 // Simulate processing delay
                 TimeoutFuture::new(config.typing_indicator_delay).await;

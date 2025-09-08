@@ -89,10 +89,10 @@ impl MessageParser {
         match input_type {
             InputType::Currency => {
                 if let Some(amount) = value.as_f64() {
-                    format!("₱{:,.2}", amount)
+                    format!("₱{:.2}", amount)
                 } else if let Some(obj) = value.as_object() {
                     if let Some(amount) = obj.get("amount").and_then(|v| v.as_f64()) {
-                        format!("₱{:,.2}", amount)
+                        format!("₱{:.2}", amount)
                     } else {
                         value.to_string()
                     }
